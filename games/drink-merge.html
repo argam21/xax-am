@@ -4,267 +4,344 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Drink Merge</title>
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #0a0f1e; overflow-x: hidden; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:linear-gradient(170deg,#0a0f1e,#0f2027,#1a3a4a);
+      display:flex;flex-direction:column;align-items:center;
+      padding-top:14px;font-family:system-ui,sans-serif;
+      user-select:none;-webkit-user-select:none;min-height:100vh;color:#e8eaf0}
+    #hud{display:flex;gap:8px;margin-bottom:10px}
+    .hud-box{flex:1;background:#0c1526;border-radius:10px;padding:7px 4px;
+      text-align:center;border:1px solid #1e3a5f;min-width:70px}
+    .hud-label{color:#3a5570;font-size:9px;letter-spacing:1px}
+    .hud-val{font-size:19px;font-weight:800;line-height:1.2}
+    #shooter-row{display:flex;margin-bottom:4px}
+    .shooter-cell{display:flex;align-items:center;justify-content:center;
+      cursor:pointer;opacity:0.3;transition:opacity 0.1s;font-size:26px}
+    .shooter-cell.active{opacity:1}
+    #board-wrap{position:relative}
+    #board{display:grid;background:linear-gradient(180deg,#060d1a,#0d1b2a);
+      border:1.5px solid #1a3050;border-radius:12px;overflow:hidden;
+      box-shadow:0 4px 40px rgba(0,0,0,.6)}
+    .cell{display:flex;align-items:center;justify-content:center;
+      border-right:1px solid rgba(255,255,255,0.04);
+      border-bottom:1px solid rgba(255,255,255,0.04);
+      transition:background 0.1s;font-size:24px}
+    .cell.danger-top{border-top:1px solid rgba(239,68,68,0.25)}
+    .cell.hot{background:rgba(255,160,32,0.08)}
+    .tap-zone{position:absolute;top:0;cursor:pointer;z-index:10}
+    #progress-wrap{margin-top:10px}
+    #progress-bar-bg{height:3px;background:#0d1b2a;border-radius:99px;overflow:hidden}
+    #progress-bar{height:100%;background:linear-gradient(90deg,#34d399,#059669);
+      border-radius:99px;transition:width 0.3s;width:0%}
+    #progress-label{display:flex;justify-content:space-between;
+      color:#2a4060;font-size:10px;margin-bottom:3px}
+    #combo{position:fixed;top:25%;left:50%;transform:translate(-50%,-50%);
+      font-size:32px;font-weight:900;color:#fcd34d;
+      text-shadow:0 0 24px #f59e0b;z-index:999;
+      pointer-events:none;display:none;animation:pop .35s cubic-bezier(.36,2,.6,1) both}
+    #gameover{position:absolute;inset:0;background:rgba(0,0,0,.92);
+      display:none;flex-direction:column;align-items:center;justify-content:center;
+      gap:8px;z-index:50;border-radius:12px}
+    #gameover-score{color:#fcd34d;font-size:28px;font-weight:800}
+    #gameover-level{color:#64748b;font-size:12px}
+    #replay-btn{margin-top:8px;background:linear-gradient(135deg,#fcd34d,#f59e0b);
+      color:#0a0f1e;border:none;border-radius:10px;padding:11px 36px;
+      font-size:15px;font-weight:800;cursor:pointer}
+    @keyframes pop{
+      0%{transform:translate(-50%,-50%) scale(.3);opacity:0}
+      65%{transform:translate(-50%,-50%) scale(1.2);opacity:1}
+      100%{transform:translate(-50%,-50%) scale(1);opacity:1}
+    }
+    @keyframes fall{
+      0%{transform:translateY(0);opacity:1}
+      100%{transform:translateY(var(--bh));opacity:0}
+    }
+    #anim{position:absolute;pointer-events:none;z-index:20;
+      display:flex;align-items:center;justify-content:center;display:none}
   </style>
 </head>
 <body>
-  <div id="root"></div>
-  <script type="text/babel">
-    const { useState, useRef, useEffect } = React;
 
-    const TYPES = [
-      { id: 0, emoji: "🧃", color: "#f59e0b" },
-      { id: 1, emoji: "🍊", color: "#f97316" },
-      { id: 2, emoji: "🍹", color: "#10b981" },
-      { id: 3, emoji: "🫐", color: "#8b5cf6" },
-      { id: 4, emoji: "🍸", color: "#3b82f6" },
-      { id: 5, emoji: "🥂", color: "#fcd34d" },
-      { id: 6, emoji: "🍷", color: "#dc2626" },
-    ];
+<div id="hud">
+  <div class="hud-box"><div class="hud-label">SCORE</div><div class="hud-val" id="score" style="color:#fcd34d">0</div></div>
+  <div class="hud-box"><div class="hud-label">LEVEL</div><div class="hud-val" id="level" style="color:#34d399">1</div></div>
+  <div class="hud-box"><div class="hud-label">NEXT</div><div class="hud-val" id="next-drink">🍊</div></div>
+</div>
 
-    const COLS = 6, ROWS = 10;
-    let _uid = 1;
-    const nextUid = () => _uid++;
+<div id="combo"></div>
+<div id="shooter-row"></div>
 
-    function makeDrink(maxType = 2) {
-      const typeId = Math.floor(Math.random() * (Math.min(maxType, 6) + 1));
-      return { typeId, uid: nextUid() };
-    }
-    function emptyBoard() {
-      return Array.from({ length: ROWS }, () => Array(COLS).fill(null));
-    }
-    function cloneBoard(b) {
-      return b.map(row => row.map(cell => cell ? { ...cell } : null));
-    }
-    function applyGravity(board) {
-      const b = cloneBoard(board);
-      for (let c = 0; c < COLS; c++) {
-        const stack = [];
-        for (let r = 0; r < ROWS; r++) if (b[r][c]) stack.push(b[r][c]);
-        for (let r = 0; r < ROWS; r++) b[r][c] = null;
-        stack.forEach((item, i) => { b[ROWS - stack.length + i][c] = item; });
+<div id="board-wrap">
+  <div id="board"></div>
+  <div id="anim"></div>
+  <div id="gameover">
+    <div style="font-size:44px">😵</div>
+    <div style="color:#f87171;font-size:22px;font-weight:900">GAME OVER</div>
+    <div id="gameover-level"></div>
+    <div id="gameover-score"></div>
+    <button id="replay-btn">Play Again</button>
+  </div>
+</div>
+
+<div id="progress-wrap">
+  <div id="progress-label"><span id="plevel">Level 1</span><span id="pdrops">0/15</span></div>
+  <div id="progress-bar-bg"><div id="progress-bar"></div></div>
+  <div style="color:#1e3a50;font-size:10px;text-align:center;margin-top:5px">Tap column to drop · Match 3 to clear</div>
+</div>
+
+<script>
+const TYPES = [
+  {emoji:"🧃",color:"#f59e0b"},
+  {emoji:"🍊",color:"#f97316"},
+  {emoji:"🍹",color:"#10b981"},
+  {emoji:"🫐",color:"#8b5cf6"},
+  {emoji:"🍸",color:"#3b82f6"},
+  {emoji:"🥂",color:"#fcd34d"},
+  {emoji:"🍷",color:"#dc2626"},
+];
+const COLS=6, ROWS=10;
+let board, current, next, score, drops, level, over, busy;
+let cellSize, BW, BH;
+
+function calcSize(){
+  cellSize = Math.min(Math.floor((window.innerWidth-24)/COLS), 54);
+  BW = cellSize*COLS;
+  BH = cellSize*ROWS;
+}
+
+function randType(max){return Math.floor(Math.random()*(Math.min(max,6)+1));}
+
+function emptyBoard(){return Array.from({length:ROWS},()=>Array(COLS).fill(null));}
+
+function cloneBoard(b){return b.map(r=>r.map(c=>c!==null?{...c}:null));}
+
+function applyGravity(b){
+  for(let c=0;c<COLS;c++){
+    const stack=[];
+    for(let r=0;r<ROWS;r++) if(b[r][c]!==null) stack.push(b[r][c]);
+    for(let r=0;r<ROWS;r++) b[r][c]=null;
+    stack.forEach((item,i)=>{b[ROWS-stack.length+i][c]=item;});
+  }
+  return b;
+}
+
+function findMatches(b){
+  const hit=new Set();
+  for(let r=0;r<ROWS;r++)
+    for(let c=0;c<=COLS-3;c++){
+      const a=b[r][c],bb=b[r][c+1],cc=b[r][c+2];
+      if(a!==null&&bb!==null&&cc!==null&&a===bb&&bb===cc){
+        hit.add(`${r},${c}`);hit.add(`${r},${c+1}`);hit.add(`${r},${c+2}`);
       }
-      return b;
     }
-    function findMatches(board) {
-      const hit = new Set();
-      for (let r = 0; r < ROWS; r++)
-        for (let c = 0; c <= COLS - 3; c++) {
-          const a = board[r][c], b = board[r][c+1], cc = board[r][c+2];
-          if (a && b && cc && a.typeId === b.typeId && b.typeId === cc.typeId) {
-            [c,c+1,c+2].forEach(x => hit.add(`${r},${x}`));
-          }
-        }
-      for (let c = 0; c < COLS; c++)
-        for (let r = 0; r <= ROWS - 3; r++) {
-          const a = board[r][c], b = board[r+1][c], cc = board[r+2][c];
-          if (a && b && cc && a.typeId === b.typeId && b.typeId === cc.typeId) {
-            [r,r+1,r+2].forEach(x => hit.add(`${x},${c}`));
-          }
-        }
-      return hit;
-    }
-    function resolveBoard(board) {
-      let b = cloneBoard(board), cleared = 0;
-      while (true) {
-        const m = findMatches(b);
-        if (!m.size) break;
-        cleared += m.size;
-        m.forEach(k => { const [r,c] = k.split(',').map(Number); b[r][c] = null; });
-        b = applyGravity(b);
+  for(let c=0;c<COLS;c++)
+    for(let r=0;r<=ROWS-3;r++){
+      const a=b[r][c],bb=b[r+1][c],cc=b[r+2][c];
+      if(a!==null&&bb!==null&&cc!==null&&a===bb&&bb===cc){
+        hit.add(`${r},${c}`);hit.add(`${r+1},${c}`);hit.add(`${r+2},${c}`);
       }
-      return { board: b, cleared };
     }
-    function makeInitialBoard() {
-      const b = emptyBoard();
-      for (let r = ROWS - 3; r < ROWS; r++)
-        for (let c = 0; c < COLS; c++)
-          b[r][c] = makeDrink(2);
-      return resolveBoard(b).board;
+  return hit;
+}
+
+function resolveBoard(b){
+  let cleared=0;
+  while(true){
+    const m=findMatches(b);
+    if(!m.size) break;
+    cleared+=m.size;
+    m.forEach(k=>{const[r,c]=k.split(',').map(Number);b[r][c]=null;});
+    applyGravity(b);
+  }
+  return cleared;
+}
+
+function makeInitialBoard(){
+  const b=emptyBoard();
+  for(let r=ROWS-3;r<ROWS;r++)
+    for(let c=0;c<COLS;c++)
+      b[r][c]=randType(2);
+  resolveBoard(b);
+  return b;
+}
+
+function initGame(){
+  board=makeInitialBoard();
+  current=randType(2);
+  next=randType(2);
+  score=0; drops=0; level=1; over=false; busy=false;
+}
+
+function buildDOM(){
+  calcSize();
+  // shooter row
+  const sr=document.getElementById('shooter-row');
+  sr.innerHTML='';
+  sr.style.width=BW+'px';
+  for(let c=0;c<COLS;c++){
+    const d=document.createElement('div');
+    d.className='shooter-cell';
+    d.style.width=cellSize+'px';
+    d.style.height=cellSize+'px';
+    d.id='sc'+c;
+    sr.appendChild(d);
+  }
+  // board
+  const boardEl=document.getElementById('board');
+  boardEl.style.width=BW+'px';
+  boardEl.style.height=BH+'px';
+  boardEl.style.gridTemplateColumns=`repeat(${COLS},${cellSize}px)`;
+  boardEl.style.gridTemplateRows=`repeat(${ROWS},${cellSize}px)`;
+  boardEl.innerHTML='';
+  for(let r=0;r<ROWS;r++)
+    for(let c=0;c<COLS;c++){
+      const d=document.createElement('div');
+      d.className='cell'+(r===1?' danger-top':'');
+      d.style.fontSize=(cellSize*0.5)+'px';
+      d.id=`c${r}_${c}`;
+      boardEl.appendChild(d);
     }
-    function newGame() {
-      return { board: makeInitialBoard(), current: makeDrink(2), next: makeDrink(2),
-               score: 0, drops: 0, level: 1, over: false };
+  // tap zones
+  const wrap=document.getElementById('board-wrap');
+  wrap.style.width=BW+'px';
+  document.querySelectorAll('.tap-zone').forEach(e=>e.remove());
+  for(let c=0;c<COLS;c++){
+    const d=document.createElement('div');
+    d.className='tap-zone';
+    d.style.left=(c*cellSize)+'px';
+    d.style.width=cellSize+'px';
+    d.style.height=BH+'px';
+    d.addEventListener('pointerdown',e=>{e.preventDefault();drop(c);});
+    wrap.appendChild(d);
+  }
+  // anim element
+  const anim=document.getElementById('anim');
+  anim.style.width=cellSize+'px';
+  anim.style.height=cellSize+'px';
+  anim.style.fontSize=(cellSize*0.5)+'px';
+  document.documentElement.style.setProperty('--bh', BH+'px');
+  // progress
+  document.getElementById('progress-wrap').style.width=BW+'px';
+  document.getElementById('hud').style.width=BW+'px';
+}
+
+function renderBoard(activeCol){
+  for(let r=0;r<ROWS;r++)
+    for(let c=0;c<COLS;c++){
+      const el=document.getElementById(`c${r}_${c}`);
+      el.textContent=board[r][c]!==null?TYPES[board[r][c]].emoji:'';
+      el.classList.toggle('hot', c===activeCol);
     }
+}
 
-    function App() {
-      const G = useRef(newGame());
-      const [, forceRender] = useState(0);
-      const render = () => forceRender(n => n + 1);
-      const busy = useRef(false);
-      const [anim, setAnim] = useState(null);
-      const [combo, setCombo] = useState(null);
-      const [activeCol, setActiveCol] = useState(null);
+function renderHUD(){
+  document.getElementById('score').textContent=score;
+  document.getElementById('level').textContent=level;
+  document.getElementById('next-drink').textContent=TYPES[next].emoji;
+  document.getElementById('plevel').textContent='Level '+level;
+  document.getElementById('pdrops').textContent=(drops%15)+'/15';
+  document.getElementById('progress-bar').style.width=((drops%15)/15*100)+'%';
+}
 
-      useEffect(() => {
-        const fn = () => forceRender(n => n + 1);
-        window.addEventListener('resize', fn);
-        return () => window.removeEventListener('resize', fn);
-      }, []);
+function renderShooter(activeCol){
+  for(let c=0;c<COLS;c++){
+    const el=document.getElementById('sc'+c);
+    el.textContent=TYPES[current].emoji;
+    el.classList.toggle('active', c===activeCol);
+    el.style.fontSize=(cellSize*0.52)+'px';
+  }
+}
 
-      const cellSize = Math.min(Math.floor((window.innerWidth - 24) / COLS), 54);
-      const BW = cellSize * COLS;
-      const BH = cellSize * ROWS;
+function showCombo(msg){
+  const el=document.getElementById('combo');
+  el.textContent=msg;
+  el.style.display='block';
+  el.style.animation='none';
+  void el.offsetWidth;
+  el.style.animation='pop .35s cubic-bezier(.36,2,.6,1) both';
+  setTimeout(()=>{el.style.display='none';},1200);
+}
 
-      function drop(col) {
-        const g = G.current;
-        if (g.over || busy.current || col < 0 || col >= COLS) return;
-        if (g.board[0][col] !== null) return;
-        busy.current = true;
-        setActiveCol(col);
-        const droppedTypeId = g.current.typeId;
-        const droppedUid = g.current.uid;
-        setAnim({ col, typeId: droppedTypeId, key: Date.now() });
-        setTimeout(() => {
-          const g2 = G.current;
-          let row = -1;
-          for (let r = ROWS - 1; r >= 0; r--) {
-            if (g2.board[r][col] === null) { row = r; break; }
-          }
-          if (row === -1) { busy.current = false; setAnim(null); setActiveCol(null); return; }
-          const nb = cloneBoard(g2.board);
-          nb[row][col] = { typeId: droppedTypeId, uid: droppedUid };
-          const { board: resolved, cleared } = resolveBoard(nb);
-          const newDrops = g2.drops + 1;
-          const newLevel = Math.min(Math.floor(newDrops / 15) + 1, 7);
-          const newScore = g2.score + cleared * 10 * g2.level;
-          const newCurrent = { ...g2.next };
-          const newNext = makeDrink(Math.min(newLevel + 1, 6));
-          const over = resolved[0].some(c => c !== null);
-          G.current = { board: resolved, current: newCurrent, next: newNext,
-                        score: newScore, drops: newDrops, level: newLevel, over };
-          if (cleared > 0) {
-            const msg = cleared >= 9 ? "🔥 INSANE!" : cleared >= 6 ? "💥 MEGA!" : "✨ NICE!";
-            setCombo(msg);
-            setTimeout(() => setCombo(null), 1200);
-          }
-          busy.current = false;
-          setAnim(null);
-          setActiveCol(null);
-          render();
-        }, 200);
-      }
+function drop(col){
+  if(over||busy) return;
+  if(board[0][col]!==null) return;
+  busy=true;
 
-      function reset() {
-        G.current = newGame();
-        busy.current = false;
-        setAnim(null); setCombo(null); setActiveCol(null);
-        render();
-      }
+  const droppedType=current;
 
-      const g = G.current;
-      const curType = TYPES[g.current.typeId];
-      const nxtType = TYPES[g.next.typeId];
+  // show anim
+  renderShooter(col);
+  renderBoard(col);
+  const anim=document.getElementById('anim');
+  anim.textContent=TYPES[droppedType].emoji;
+  anim.style.left=(col*cellSize)+'px';
+  anim.style.top='0';
+  anim.style.display='flex';
+  anim.style.animation='none';
+  void anim.offsetWidth;
+  anim.style.animation='fall .2s ease-in forwards';
 
-      return (
-        <div style={{ minHeight:"100vh", background:"linear-gradient(170deg,#0a0f1e,#0f2027,#1a3a4a)",
-          display:"flex", flexDirection:"column", alignItems:"center", paddingTop:14,
-          fontFamily:"system-ui,sans-serif", userSelect:"none", WebkitUserSelect:"none" }}>
+  setTimeout(()=>{
+    anim.style.display='none';
 
-          <div style={{ display:"flex", gap:8, marginBottom:10, width:BW }}>
-            {[{label:"SCORE",val:g.score,col:"#fcd34d"},{label:"LEVEL",val:g.level,col:"#34d399"},{label:"NEXT",val:nxtType.emoji,col:"#fff"}].map(({label,val,col})=>(
-              <div key={label} style={{ flex:1, background:"#0c1526", borderRadius:10, padding:"7px 4px", textAlign:"center", border:"1px solid #1e3a5f" }}>
-                <div style={{ color:"#3a5570", fontSize:9, letterSpacing:1 }}>{label}</div>
-                <div style={{ color:col, fontSize:19, fontWeight:800 }}>{val}</div>
-              </div>
-            ))}
-          </div>
+    // find lowest empty row
+    let row=-1;
+    for(let r=ROWS-1;r>=0;r--){
+      if(board[r][col]===null){row=r;break;}
+    }
+    if(row===-1){busy=false;return;}
 
-          {combo && (
-            <div style={{ position:"fixed", top:"25%", left:"50%", transform:"translate(-50%,-50%)",
-              fontSize:32, fontWeight:900, color:"#fcd34d", textShadow:"0 0 24px #f59e0b",
-              zIndex:999, pointerEvents:"none", animation:"pop .35s cubic-bezier(.36,2,.6,1) both" }}>{combo}</div>
-          )}
+    board[row][col]=droppedType;
+    const cleared=resolveBoard(board);
 
-          <div style={{ display:"flex", width:BW, marginBottom:4 }}>
-            {Array(COLS).fill(0).map((_,c) => (
-              <button key={c} onPointerDown={e=>{e.preventDefault();drop(c);}}
-                style={{ width:cellSize, height:cellSize, background:"none", border:"none",
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  fontSize:cellSize*0.52, cursor:"pointer", padding:0,
-                  opacity: activeCol===c ? 1 : 0.3,
-                  filter: activeCol===c ? `drop-shadow(0 0 8px ${curType.color})` : "none",
-                  transition:"opacity 0.1s" }}>
-                {curType.emoji}
-              </button>
-            ))}
-          </div>
+    drops++;
+    level=Math.min(Math.floor(drops/15)+1,7);
+    score+=cleared*10*level;
 
-          <div style={{ position:"relative", width:BW }}>
-            <div style={{ width:BW, height:BH, display:"grid",
-              gridTemplateColumns:`repeat(${COLS},${cellSize}px)`,
-              gridTemplateRows:`repeat(${ROWS},${cellSize}px)`,
-              background:"linear-gradient(180deg,#060d1a,#0d1b2a)",
-              border:"1.5px solid #1a3050", borderRadius:12, overflow:"hidden",
-              boxShadow:"0 4px 40px #000a", position:"relative" }}>
-              {Array(ROWS).fill(0).map((_,r) =>
-                Array(COLS).fill(0).map((_,c) => {
-                  const cell = g.board[r][c];
-                  return (
-                    <div key={`${r}-${c}`} style={{ display:"flex", alignItems:"center", justifyContent:"center",
-                      fontSize:cellSize*0.5,
-                      borderRight: c<COLS-1?"1px solid #ffffff06":"none",
-                      borderBottom: r<ROWS-1?"1px solid #ffffff06":"none",
-                      borderTop: r===1?"1px solid #ef444433":"none",
-                      background: activeCol===c ? `${curType.color}10` : "transparent" }}>
-                      {cell ? TYPES[cell.typeId].emoji : null}
-                    </div>
-                  );
-                })
-              )}
-              {anim && (
-                <div key={anim.key} style={{ position:"absolute", left:anim.col*cellSize, top:0,
-                  width:cellSize, height:cellSize, display:"flex", alignItems:"center", justifyContent:"center",
-                  fontSize:cellSize*0.5, pointerEvents:"none", zIndex:10,
-                  animation:`fall .2s ease-in forwards` }}>
-                  {TYPES[anim.typeId].emoji}
-                </div>
-              )}
-              {g.over && (
-                <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,.92)",
-                  display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-                  gap:8, zIndex:50, borderRadius:12 }}>
-                  <div style={{ fontSize:44 }}>😵</div>
-                  <div style={{ color:"#f87171", fontSize:22, fontWeight:900 }}>GAME OVER</div>
-                  <div style={{ color:"#64748b", fontSize:12 }}>Level {g.level}</div>
-                  <div style={{ color:"#fcd34d", fontSize:28, fontWeight:800 }}>{g.score} pts</div>
-                  <button onClick={reset} style={{ marginTop:8, background:"linear-gradient(135deg,#fcd34d,#f59e0b)",
-                    color:"#0a0f1e", border:"none", borderRadius:10, padding:"11px 36px",
-                    fontSize:15, fontWeight:800, cursor:"pointer" }}>Play Again</button>
-                </div>
-              )}
-            </div>
-            {Array(COLS).fill(0).map((_,c) => (
-              <div key={`tap-${c}`} onPointerDown={e=>{e.preventDefault();drop(c);}}
-                style={{ position:"absolute", left:c*cellSize, top:0,
-                  width:cellSize, height:BH, cursor:"pointer", zIndex:20 }} />
-            ))}
-          </div>
+    // advance queue
+    current=next;
+    next=randType(Math.min(level+1,6));
 
-          <div style={{ width:BW, marginTop:10 }}>
-            <div style={{ display:"flex", justifyContent:"space-between", color:"#2a4060", fontSize:10, marginBottom:3 }}>
-              <span>Level {g.level}</span><span>{g.drops%15}/15</span>
-            </div>
-            <div style={{ height:3, background:"#0d1b2a", borderRadius:99, overflow:"hidden" }}>
-              <div style={{ height:"100%", width:`${((g.drops%15)/15)*100}%`,
-                background:"linear-gradient(90deg,#34d399,#059669)", borderRadius:99, transition:"width .3s" }} />
-            </div>
-          </div>
+    over=board[0].some(c=>c!==null);
 
-          <style>{`
-            @keyframes fall { 0%{transform:translateY(0);opacity:1} 100%{transform:translateY(${BH}px);opacity:0} }
-            @keyframes pop { 0%{transform:translate(-50%,-50%) scale(.3);opacity:0} 65%{transform:translate(-50%,-50%) scale(1.2);opacity:1} 100%{transform:translate(-50%,-50%) scale(1);opacity:1} }
-          `}</style>
-        </div>
-      );
+    if(cleared>0){
+      const msg=cleared>=9?"🔥 INSANE!":cleared>=6?"💥 MEGA!":"✨ NICE!";
+      showCombo(msg);
     }
 
-    ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
-  </script>
+    renderBoard(null);
+    renderHUD();
+    renderShooter(null);
+
+    if(over){
+      document.getElementById('gameover-level').textContent='Level '+level;
+      document.getElementById('gameover-score').textContent=score+' pts';
+      document.getElementById('gameover').style.display='flex';
+    }
+
+    busy=false;
+  },210);
+}
+
+function startGame(){
+  initGame();
+  buildDOM();
+  renderBoard(null);
+  renderHUD();
+  renderShooter(null);
+  document.getElementById('gameover').style.display='none';
+}
+
+document.getElementById('replay-btn').addEventListener('click',startGame);
+window.addEventListener('resize',()=>{
+  buildDOM();
+  renderBoard(null);
+  renderHUD();
+  renderShooter(null);
+});
+
+startGame();
+</script>
 </body>
 </html>
