@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
+  <title>Հայերեն Բառ</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{width:100%;height:100%;overflow:hidden}
+    body{
+      background:linear-gradient(170deg,#0a0f1e,#0f2027,#1a3a4a);
+      display:flex;flex-direction:column;align-items:center;
+      font-family:'Segoe UI',system-ui,sans-serif;
+      user-select:none;-webkit-user-select:none;color:#e8eaf0;
+      padding:10px 8px 8px;
+    }
+
+    /* HEADER */
+    #header{display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:8px;max-width:360px}
+    #title{font-size:18px;font-weight:900;letter-spacing:1px;color:#fcd34d}
+    #streak{font-size:12px;color:#7a95b0;display:flex;align-items:center;gap:4px}
+    #info-btn{background:none;border:1px solid #1e3a5f;border-radius:8px;color:#7a95b0;padding:4px 10px;font-size:12px;cursor:pointer}
+
+    /* MESSAGE */
+    #msg{height:24px;text-align:center;font-size:13px;font-weight:600;margin-bottom:6px;color:#fcd34d}
+
+    /* GRID */
+    #grid{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+    .row{display:flex;gap:5px;justify-content:center}
+    .tile{
+      width:54px;height:54px;border:2px solid #1e3a5f;border-radius:10px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:22px;font-weight:800;
+      background:#0c1526;color:#e8eaf0;
+      transition:background 0.3s,border-color 0.3s,transform 0.1s;
+      position:relative;
+    }
+    .tile.filled{border-color:#4a6080;transform:scale(1.05)}
+    .tile.correct{background:#16a34a;border-color:#16a34a;color:#fff}
+    .tile.present{background:#ca8a04;border-color:#ca8a04;color:#fff}
+    .tile.absent{background:#1e293b;border-color:#1e293b;color:#64748b}
+    .tile.shake{animation:shake 0.4s ease}
+    .tile.pop{animation:pop 0.1s ease}
+    @keyframes shake{0%,100%{transform:translateX(0)}15%{transform:translateX(-6px)}45%{transform:translateX(6px)}75%{transform:translateX(-4px)}}
+    @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+    @keyframes flip{0%{transform:scaleY(1)}50%{transform:scaleY(0)}100%{transform:scaleY(1)}}
+
+    /* KEYBOARD */
+    #keyboard{display:flex;flex-direction:column;gap:5px;width:100%;max-width:360px}
+    .kb-row{display:flex;gap:3px;justify-content:center}
+    .key{
+      height:46px;min-width:32px;padding:0 6px;
+      border:none;border-radius:8px;
+      background:#1e3a5f;color:#e8eaf0;
+      font-size:15px;font-weight:700;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      flex:1;max-width:38px;
+      transition:background 0.2s;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .key:active{transform:scale(0.95)}
+    .key.wide{max-width:54px;font-size:11px}
+    .key.correct{background:#16a34a;color:#fff}
+    .key.present{background:#ca8a04;color:#fff}
+    .key.absent{background:#0c1526;color:#374151}
+
+    /* MODAL */
+    #modal{
+      display:none;position:fixed;inset:0;z-index:100;
+      background:rgba(0,0,0,0.88);align-items:center;justify-content:center;padding:16px;
+    }
+    #modal.open{display:flex}
+    #modal-box{
+      background:#111520;border:1px solid #1e3a5f;border-radius:20px;
+      padding:24px;width:100%;max-width:340px;text-align:center;
+    }
+    #modal-box h2{font-size:20px;font-weight:900;margin-bottom:8px}
+    #modal-box p{font-size:13px;color:#7a95b0;line-height:1.6;margin-bottom:6px}
+    #modal-word{font-size:28px;font-weight:900;color:#fcd34d;margin:12px 0}
+    #modal-btn{
+      width:100%;margin-top:16px;background:linear-gradient(135deg,#fcd34d,#f59e0b);
+      color:#0a0f1e;border:none;border-radius:10px;padding:12px;
+      font-size:15px;font-weight:800;cursor:pointer;
+    }
+    #modal-meaning{font-size:12px;color:#4a6080;margin-top:4px}
+
+    /* WIN ANIMATION */
+    #confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:200}
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <div id="title">🇦🇲 ՀԱՅԵՐԵՆ ԲԱՌ</div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <div id="streak">🔥 <span id="streak-num">0</span></div>
+    <button id="info-btn" onclick="openInfo()">ℹ️</button>
+  </div>
+</div>
+
+<div id="msg"></div>
+<div id="grid"></div>
+<div id="keyboard"></div>
+
+<!-- MODAL -->
+<div id="modal">
+  <div id="modal-box">
+    <div id="modal-icon" style="font-size:48px;margin-bottom:8px">😔</div>
+    <h2 id="modal-title">Խաղն ավարտվեց</h2>
+    <p id="modal-sub">Ճիշտ բառն էր</p>
+    <div id="modal-word"></div>
+    <div id="modal-meaning"></div>
+    <p id="modal-info" style="font-size:12px;color:#4a6080;margin-top:12px"></p>
+    <button id="modal-btn" onclick="newGame()">Նոր բառ 🎯</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// WORD LIST — 5-letter Armenian words
+// ═══════════════════════════════════════
+const WORDS = [
+  {w:"արծիվ", m:"eagle / արծիվ"},
+  {w:"կատու", m:"cat / կատու"},
+  {w:"անտառ", m:"forest / անտառ"},
+  {w:"ծաղիկ", m:"flower / ծաղիկ"},
+  {w:"երկիր", m:"country / երկիր"},
+  {w:"բժիշկ", m:"doctor / բժիշկ"},
+  {w:"դպրոց", m:"school / դպրոց"},
+  {w:"գլուխ", m:"head / գլուխ"},
+  {w:"բերան", m:"mouth / բերան"},
+  {w:"կանաչ", m:"green / կանաչ"},
+  {w:"դեղին", m:"yellow / դեղին"},
+  {w:"ուրախ", m:"happy / ուրախ"},
+  {w:"տխուր", m:"sad / տխուր"},
+  {w:"ոչխար", m:"sheep / ոչխար"},
+  {w:"աղվես", m:"fox / աղվես"},
+  {w:"ճագար", m:"rabbit / ճագար"},
+  {w:"կյանք", m:"life / կյանք"},
+  {w:"ծիծաղ", m:"laughter / ծիծաղ"},
+  {w:"խնձոր", m:"apple / խնձոր"},
+  {w:"պանիր", m:"cheese / պանիր"},
+  {w:"կեռաս", m:"cherry / կեռաս"},
+  {w:"փողոց", m:"street / փողոց"},
+  {w:"խավար", m:"darkness / խավար"},
+  {w:"հրաշք", m:"miracle / հրաշք"},
+  {w:"ձկնիկ", m:"little fish / ձկնիկ"},
+  {w:"անձրև", m:"rain / անձրև"},
+  {w:"ուտել", m:"to eat / ուտել"},
+  {w:"խոսել", m:"to speak / խոսել"},
+  {w:"աչքեր", m:"eyes / աչքեր"},
+  {w:"մատեր", m:"fingers / մատեր"},
+  {w:"երգեր", m:"songs / երգեր"},
+  {w:"պարեր", m:"dances / պարեր"},
+  {w:"ծովիկ", m:"little sea / ծովիկ"},
+  {w:"հողեր", m:"lands / հողեր"},
+  {w:"հացեր", m:"breads / հացեր"},
+  {w:"բալեր", m:"cherries / բալեր"},
+  {w:"ծեծել", m:"to beat / ծեծել"},
+  {w:"վազել", m:"to run / վազել"},
+  {w:"երաժ", m:null}, // skip - 4
+  {w:"սիրել", m:"to love / սիրել"},
+  {w:"կարել", m:"to sew / կարել"},
+  {w:"նայել", m:"to look / նայել"},
+  {w:"լսել", m:null}, // 4
+  {w:"կանգ", m:null}, // 4
+  {w:"արքան", m:"the king / արքան"},
+  {w:"զինվ", m:null}, // 4
+  {w:"հայոց", m:"of Armenians / հայոց"},
+  {w:"հաղթ", m:null}, // 4
+  {w:"լույսն", m:null}, // 6
+  {w:"ուժեղ", m:"strong / ուժեղ"},
+  {w:"թույլ", m:"weak / թույլ"},
+  {w:"հեռու", m:"far / հեռու"},
+  {w:"մոտիկ", m:"close / մոտիկ"},
+  {w:"շուտ", m:null}, // 4
+  {w:"դժվար", m:"difficult / դժվար"},
+  {w:"հեշտ", m:null}, // 4
+  {w:"անուշ", m:"sweet / անուշ"},
+  {w:"դառն", m:null}, // 4
+  {w:"թթու", m:null}, // 4
+  {w:"աղի", m:null}, // 4
+  {w:"ծովեր", m:"seas / ծովեր"},
+  {w:"լճեր", m:null}, // 4
+  {w:"գետեր", m:"rivers / գետեր"},
+  {w:"լեռներ", m:null}, // 6
+  {w:"ձորեր", m:"gorges / ձորեր"},
+  {w:"դաշտ", m:null}, // 4
+  {w:"պուրակ", m:null}, // 6
+  {w:"այգի", m:null}, // 4 (5?)
+];
+
+// Filter to exactly 5 letters, remove nulls
+const VALID_WORDS = WORDS.filter(({w,m}) => m && [...w].length === 5);
+
+// Full Armenian keyboard rows
+const KB = [
+  ['է','ե','ռ','տ','յ','ի','օ','պ','ա','ս'],
+  ['դ','ֆ','գ','հ','ձ','կ','լ','խ','զ','ծ'],
+  ['ճ','վ','բ','ն','մ','շ','ղ','ք','և','ու'],
+  ['←','փ','ջ','ր','ց','ւ','ն','չ','↵'],
+];
+
+const ROWS = 6, COLS = 5;
+let secret, secretChars, guess, board, current, gameOver, used, streak, seenWords;
+
+function pickWord(){
+  const available = VALID_WORDS.filter(({w}) => !seenWords.has(w));
+  if(available.length === 0){ seenWords.clear(); return VALID_WORDS[Math.floor(Math.random()*VALID_WORDS.length)]; }
+  return available[Math.floor(Math.random()*available.length)];
+}
+
+function init(){
+  const picked = pickWord();
+  secret = picked.w;
+  seenWords = seenWords || new Set();
+  seenWords.add(secret);
+  secretChars = [...secret];
+  guess = [];
+  board = Array(ROWS).fill(null).map(()=>Array(COLS).fill(null));
+  current = 0;
+  gameOver = false;
+  used = {}; // letter → 'correct'|'present'|'absent'
+  streak = streak || 0;
+  buildGrid();
+  buildKeyboard();
+  showMsg('');
+  document.getElementById('modal').classList.remove('open');
+  updateStreak();
+}
+
+function newGame(){
+  document.getElementById('modal').classList.remove('open');
+  init();
+}
+
+function buildGrid(){
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  for(let r=0;r<ROWS;r++){
+    const row = document.createElement('div');
+    row.className = 'row';
+    for(let c=0;c<COLS;c++){
+      const tile = document.createElement('div');
+      tile.className = 'tile';
+      tile.id = `t${r}_${c}`;
+      row.appendChild(tile);
+    }
+    grid.appendChild(row);
+  }
+}
+
+function buildKeyboard(){
+  const kb = document.getElementById('keyboard');
+  kb.innerHTML = '';
+  KB.forEach(row => {
+    const div = document.createElement('div');
+    div.className = 'kb-row';
+    row.forEach(key => {
+      const btn = document.createElement('button');
+      btn.className = 'key' + (key==='←'||key==='↵'?' wide':'');
+      btn.textContent = key;
+      btn.dataset.key = key;
+      btn.addEventListener('pointerdown', e=>{ e.preventDefault(); handleKey(key); });
+      div.appendChild(btn);
+    });
+    kb.appendChild(div);
+  });
+}
+
+function updateStreak(){
+  document.getElementById('streak-num').textContent = streak;
+}
+
+function showMsg(txt, color='#fcd34d'){
+  const el = document.getElementById('msg');
+  el.textContent = txt;
+  el.style.color = color;
+}
+
+function getTile(r,c){ return document.getElementById(`t${r}_${c}`); }
+
+function handleKey(key){
+  if(gameOver) return;
+  if(key === '←'){
+    if(guess.length > 0){
+      guess.pop();
+      const c = guess.length;
+      const tile = getTile(current, c);
+      tile.textContent = '';
+      tile.classList.remove('filled');
+    }
+  } else if(key === '↵'){
+    submitGuess();
+  } else {
+    if(guess.length < COLS){
+      // handle 'ու' as single letter
+      const letter = key;
+      guess.push(letter);
+      const tile = getTile(current, guess.length-1);
+      tile.textContent = letter;
+      tile.classList.add('filled','pop');
+      setTimeout(()=>tile.classList.remove('pop'), 200);
+    }
+  }
+}
+
+function submitGuess(){
+  if(guess.length < COLS){
+    shakeRow(current);
+    showMsg('Բառը 5 տառ պետք է լինի', '#f87171');
+    return;
+  }
+
+  const guessWord = guess.join('');
+  const guessChars = [...guessWord];
+  
+  // Check validity — just accept any 5-letter attempt
+  // (no dictionary validation — Armenian is complex)
+
+  // Calculate result
+  const result = Array(COLS).fill('absent');
+  const secretCopy = [...secretChars];
+  const guessCopy = [...guessChars];
+
+  // First pass — correct
+  for(let i=0;i<COLS;i++){
+    if(guessCopy[i] === secretCopy[i]){
+      result[i] = 'correct';
+      secretCopy[i] = null;
+      guessCopy[i] = null;
+    }
+  }
+  // Second pass — present
+  for(let i=0;i<COLS;i++){
+    if(guessCopy[i] !== null){
+      const idx = secretCopy.indexOf(guessCopy[i]);
+      if(idx !== -1){
+        result[i] = 'present';
+        secretCopy[idx] = null;
+      }
+    }
+  }
+
+  // Animate tiles with flip
+  guessChars.forEach((ch, i) => {
+    const tile = getTile(current, i);
+    setTimeout(()=>{
+      tile.style.transition = 'transform 0.15s';
+      tile.style.transform = 'scaleY(0)';
+      setTimeout(()=>{
+        tile.classList.remove('filled');
+        tile.classList.add(result[i]);
+        tile.style.transform = 'scaleY(1)';
+        // Update keyboard
+        updateKey(ch, result[i]);
+      }, 150);
+    }, i * 120);
+  });
+
+  const won = result.every(r=>r==='correct');
+  const delay = COLS * 120 + 200;
+
+  setTimeout(()=>{
+    if(won){
+      streak++;
+      updateStreak();
+      showMsg(['🎉 Հոյակապ!','🔥 Շատ լավ!','⭐ Ճիշտ է!','🏆 Բռնցիք!'][Math.min(streak-1,3)] || '🎉 Հոյակապ!', '#4ade80');
+      setTimeout(()=>showEndModal(true), 1200);
+    } else {
+      current++;
+      guess = [];
+      if(current >= ROWS){
+        gameOver = true;
+        showMsg(`Բառն էր՝ ${secret}`, '#f87171');
+        setTimeout(()=>showEndModal(false), 1200);
+      }
+    }
+  }, delay);
+
+  board[current] = [...result];
+}
+
+function shakeRow(r){
+  for(let c=0;c<COLS;c++){
+    const tile = getTile(r,c);
+    tile.classList.remove('shake');
+    void tile.offsetWidth;
+    tile.classList.add('shake');
+  }
+}
+
+function updateKey(letter, state){
+  const priority = {correct:3, present:2, absent:1};
+  const btn = document.querySelector(`button[data-key="${letter}"]`);
+  if(!btn) return;
+  const cur = used[letter] || 'none';
+  if((priority[state]||0) > (priority[cur]||0)){
+    used[letter] = state;
+    btn.classList.remove('correct','present','absent');
+    btn.classList.add(state);
+  }
+}
+
+function showEndModal(won){
+  gameOver = true;
+  const wordObj = VALID_WORDS.find(({w})=>w===secret);
+  document.getElementById('modal-icon').textContent = won ? '🎉' : '😔';
+  document.getElementById('modal-title').textContent = won ? 'Ճիշտ է!' : 'Ավարտ';
+  document.getElementById('modal-sub').textContent = won ? 'Դու գտար բառը!' : 'Ճիշտ բառն էր';
+  document.getElementById('modal-word').textContent = secret;
+  document.getElementById('modal-meaning').textContent = wordObj?.m || '';
+  document.getElementById('modal-info').textContent = won
+    ? `Գուշակել ${current+1} փորձով · Շարք՝ ${streak} 🔥`
+    : `${ROWS} փորձ չբավեց`;
+  document.getElementById('modal').classList.add('open');
+}
+
+function openInfo(){
+  document.getElementById('modal-icon').textContent = 'ℹ️';
+  document.getElementById('modal-title').textContent = 'Ինչպե՞ս խաղալ';
+  document.getElementById('modal-sub').textContent = '5 տառ ունեցող հայկական բառ գուշակիր 6 փորձով:';
+  document.getElementById('modal-word').textContent = '';
+  document.getElementById('modal-meaning').textContent = '';
+  document.getElementById('modal-info').textContent =
+    '🟩 Կանաչ = ճիշտ տառ, ճիշտ տեղ\n🟨 Դեղին = ճիշտ տառ, սխալ տեղ\n⬛ Մոխրագույն = տառ բառում չկա\n\nՕգտագործիր ստեղնաշարը:';
+  document.getElementById('modal-btn').textContent = 'Հասկացա, խաղանք! 🎯';
+  document.getElementById('modal').classList.add('open');
+}
+
+// Physical keyboard support
+document.addEventListener('keydown', e => {
+  if(e.key === 'Backspace'){ handleKey('←'); return; }
+  if(e.key === 'Enter'){ handleKey('↵'); return; }
+});
+
+// Init
+seenWords = new Set();
+streak = 0;
+init();
+</script>
+</body>
+</html>
