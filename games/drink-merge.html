@@ -13,23 +13,23 @@
       font-family:system-ui,sans-serif;
       user-select:none;-webkit-user-select:none;color:#e8eaf0;
     }
-    #wrap{display:flex;flex-direction:column;align-items:center;gap:6px}
+    #wrap{display:flex;flex-direction:column;align-items:center;gap:8px}
 
-    /* HUD */
+    /* HUD — bigger, more readable */
     #hud{display:flex;gap:8px}
-    .hb{background:#0c1526;border-radius:10px;padding:7px 0;text-align:center;border:1px solid #1e3a5f;flex:1}
-    .hl{color:#6a85a0;font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
-    .hv{font-size:20px;font-weight:800;line-height:1.1}
+    .hb{background:#0c1526;border-radius:12px;padding:10px 8px;text-align:center;border:1px solid #1e3a5f;flex:1;min-width:80px}
+    .hl{color:#7a95b0;font-size:11px;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px}
+    .hv{font-size:26px;font-weight:900;line-height:1.1}
 
-    /* CURRENT DRINK DISPLAY — single centered drink, not 6 columns */
+    /* CURRENT DRINK CARD */
     #cur-display{
-      display:flex;align-items:center;justify-content:center;gap:12px;
-      background:#0c1526;border:1px solid #1e3a5f;border-radius:12px;
-      padding:8px 16px;
+      display:flex;align-items:center;justify-content:center;gap:14px;
+      background:#0c1526;border:1.5px solid #1e3a5f;border-radius:14px;
+      padding:10px 18px;
     }
-    #cur-emoji{font-size:32px;line-height:1}
-    #cur-label{font-size:11px;color:#6a85a0;line-height:1.4}
-    #cur-name{font-size:13px;font-weight:700;color:#e8eaf0}
+    #cur-emoji{font-size:36px;line-height:1}
+    #cur-label{color:#7a95b0;font-size:11px;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+    #cur-name{font-size:16px;font-weight:700;color:#e8eaf0}
 
     /* BOARD */
     #bwrap{position:relative}
@@ -37,50 +37,41 @@
       display:grid;
       background:linear-gradient(180deg,#060d1a,#0d1b2a);
       border:1.5px solid #1a3050;border-radius:12px;overflow:hidden;
-      box-shadow:0 4px 40px rgba(0,0,0,.6);
-      cursor:pointer;
+      box-shadow:0 4px 40px rgba(0,0,0,.6);cursor:pointer;
     }
-    .cell{
-      display:flex;align-items:center;justify-content:center;
-      border-right:1px solid rgba(255,255,255,0.04);
-      border-bottom:1px solid rgba(255,255,255,0.04);
-      transition:background 0.1s;
-    }
-    .cell.dt{border-top:1px solid rgba(239,68,68,0.3)}
-    .cell.hot{background:rgba(232,160,32,0.12)}
+    .cell{display:flex;align-items:center;justify-content:center;
+      border-right:1px solid rgba(255,255,255,0.05);
+      border-bottom:1px solid rgba(255,255,255,0.05);transition:background 0.1s}
+    .cell.dt{border-top:1px solid rgba(239,68,68,0.4)}
+    .cell.hot{background:rgba(232,160,32,0.13)}
     #anim{position:absolute;pointer-events:none;z-index:20;display:none;
       align-items:center;justify-content:center}
 
-    /* COL INDICATOR — shows which column is targeted */
-    #col-indicator{
-      display:flex;gap:0;margin-bottom:-6px;
-    }
-    .ci{
-      display:flex;align-items:flex-end;justify-content:center;
-      font-size:10px;color:#e8a020;opacity:0;transition:opacity 0.1s;
-      height:16px;
-    }
-    .ci.on{opacity:1}
+    /* COL ARROWS */
+    #arrows{display:flex;margin-bottom:-4px}
+    .arr-cell{display:flex;align-items:flex-end;justify-content:center;
+      height:14px;font-size:11px;color:#e8a020;opacity:0;transition:opacity 0.1s}
+    .arr-cell.on{opacity:1}
 
     /* PROGRESS */
     #prog-wrap{}
-    #prog-label{display:flex;justify-content:space-between;color:#8a9ab0;font-size:12px;font-weight:500;margin-bottom:4px}
-    #prog-bg{height:4px;background:#0d1b2a;border-radius:99px;overflow:hidden}
+    #prog-label{display:flex;justify-content:space-between;color:#9aaabb;font-size:13px;font-weight:600;margin-bottom:5px}
+    #prog-bg{height:5px;background:#0d1b2a;border-radius:99px;overflow:hidden}
     #prog-bar{height:100%;background:linear-gradient(90deg,#34d399,#059669);border-radius:99px;transition:width 0.3s;width:0%}
-    #hint{color:#4a6070;font-size:11px;text-align:center;margin-top:5px}
+    #hint{color:#5a7080;font-size:12px;text-align:center;margin-top:6px}
 
     /* COMBO */
     #combo{position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);
-      font-size:36px;font-weight:900;color:#fcd34d;text-shadow:0 0 24px #f59e0b;
+      font-size:40px;font-weight:900;color:#fcd34d;text-shadow:0 0 30px #f59e0b;
       z-index:999;pointer-events:none;display:none}
 
     /* GAMEOVER */
-    #gameover{position:absolute;inset:0;background:rgba(0,0,0,.92);
+    #gameover{position:absolute;inset:0;background:rgba(0,0,0,.93);
       display:none;flex-direction:column;align-items:center;justify-content:center;
       gap:10px;z-index:50;border-radius:12px}
     #rbtn{margin-top:8px;background:linear-gradient(135deg,#fcd34d,#f59e0b);
-      color:#0a0f1e;border:none;border-radius:10px;padding:12px 40px;
-      font-size:15px;font-weight:800;cursor:pointer}
+      color:#0a0f1e;border:none;border-radius:10px;padding:13px 44px;
+      font-size:16px;font-weight:800;cursor:pointer}
 
     @keyframes pop{
       0%{transform:translate(-50%,-50%) scale(.3);opacity:0}
@@ -94,10 +85,9 @@
   <div id="hud">
     <div class="hb"><div class="hl">Score</div><div class="hv" id="score" style="color:#fcd34d">0</div></div>
     <div class="hb"><div class="hl">Level</div><div class="hv" id="level" style="color:#34d399">1</div></div>
-    <div class="hb"><div class="hl">Next</div><div class="hv" id="next-val">🍊</div></div>
+    <div class="hb"><div class="hl">Next</div><div class="hv" id="next-val" style="font-size:28px">🍊</div></div>
   </div>
 
-  <!-- Single prominent current drink display -->
   <div id="cur-display">
     <div id="cur-emoji">🧃</div>
     <div>
@@ -106,24 +96,23 @@
     </div>
   </div>
 
-  <!-- Column target indicator -->
-  <div id="col-indicator"></div>
+  <div id="arrows"></div>
 
   <div id="bwrap">
     <div id="board"></div>
     <div id="anim"></div>
     <div id="combo"></div>
     <div id="gameover">
-      <div style="font-size:48px">😵</div>
-      <div style="color:#f87171;font-size:24px;font-weight:900">GAME OVER</div>
-      <div id="go-lv" style="color:#64748b;font-size:13px"></div>
-      <div id="go-sc" style="color:#fcd34d;font-size:30px;font-weight:800"></div>
+      <div style="font-size:52px">😵</div>
+      <div style="color:#f87171;font-size:26px;font-weight:900">GAME OVER</div>
+      <div id="go-lv" style="color:#64748b;font-size:14px"></div>
+      <div id="go-sc" style="color:#fcd34d;font-size:32px;font-weight:800"></div>
       <button id="rbtn">Play Again</button>
     </div>
   </div>
 
   <div id="prog-wrap">
-    <div id="prog-label"><span id="pl">Level 1</span><span id="pd">0 / 15 to next level</span></div>
+    <div id="prog-label"><span id="pl">Level 1</span><span id="pd">0 / 10 to next level</span></div>
     <div id="prog-bg"><div id="prog-bar"></div></div>
     <div id="hint">Tap a column to drop · Match 3 to clear</div>
   </div>
@@ -139,73 +128,114 @@ const DRINKS=[
   {e:"🥂",n:"Champagne",c:"#fcd34d"},
   {e:"🍷",n:"Wine",c:"#dc2626"},
 ];
-const COLS=6,ROWS=10;
+const COLS=6, ROWS=10;
+
+// HARDER: more drinks types from start, faster level up, more initial fill
+// Level unlocks: L1=3types, L2=4, L3=5, L4=6, L5+=7
+// Level up every 10 drops (was 15)
+const DROPS_PER_LEVEL = 10;
+
+// Initial board fills 5 rows (was 4) — harder start
+const INIT_ROWS = 5;
+
 let board,cur,nxt,score,drops,level,over,busy,aCol;
 let cs,BW,BH;
 
 function calcSize(){
   const avW=Math.min(window.innerWidth-24,420);
-  const avH=window.innerHeight - 58 - 8 - 62 - 8 - 16 - 8 - 62 - 32; // rough fixed elements
-  cs=Math.max(Math.min(Math.floor(avW/COLS),Math.floor(avH/ROWS),56),28);
+  const avH=window.innerHeight - 80 - 8 - 70 - 8 - 14 - 8 - 70 - 24;
+  cs=Math.max(Math.min(Math.floor(avW/COLS),Math.floor(avH/ROWS),54),26);
   BW=cs*COLS; BH=cs*ROWS;
 }
 
-function rnd(max){return Math.floor(Math.random()*(Math.min(max,6)+1));}
-function mkB(){return Array.from({length:ROWS},()=>Array(COLS).fill(-1));}
+function maxType(lv){ return Math.min(lv+1, 6); }
+function rnd(max){ return Math.floor(Math.random()*(max+1)); }
+
+function mkB(){ return Array.from({length:ROWS},()=>Array(COLS).fill(-1)); }
+
 function grav(b){
   for(let c=0;c<COLS;c++){
-    const s=[];for(let r=0;r<ROWS;r++) if(b[r][c]>=0)s.push(b[r][c]);
+    const s=[];
+    for(let r=0;r<ROWS;r++) if(b[r][c]>=0) s.push(b[r][c]);
     for(let r=0;r<ROWS;r++) b[r][c]=-1;
-    s.forEach((v,i)=>{b[ROWS-s.length+i][c]=v;});
+    s.forEach((v,i)=>{ b[ROWS-s.length+i][c]=v; });
   }
 }
+
 function mtch(b){
   const h=new Set();
-  for(let r=0;r<ROWS;r++) for(let c=0;c<=COLS-3;c++){const a=b[r][c];if(a>=0&&a===b[r][c+1]&&a===b[r][c+2]){h.add(`${r},${c}`);h.add(`${r},${c+1}`);h.add(`${r},${c+2}`);}}
-  for(let c=0;c<COLS;c++) for(let r=0;r<=ROWS-3;r++){const a=b[r][c];if(a>=0&&a===b[r+1][c]&&a===b[r+2][c]){h.add(`${r},${c}`);h.add(`${r+1},${c}`);h.add(`${r+2},${c}`);}}
+  for(let r=0;r<ROWS;r++)
+    for(let c=0;c<=COLS-3;c++){
+      const a=b[r][c];
+      if(a>=0&&a===b[r][c+1]&&a===b[r][c+2]){
+        h.add(`${r},${c}`);h.add(`${r},${c+1}`);h.add(`${r},${c+2}`);
+      }
+    }
+  for(let c=0;c<COLS;c++)
+    for(let r=0;r<=ROWS-3;r++){
+      const a=b[r][c];
+      if(a>=0&&a===b[r+1][c]&&a===b[r+2][c]){
+        h.add(`${r},${c}`);h.add(`${r+1},${c}`);h.add(`${r+2},${c}`);
+      }
+    }
   return h;
 }
+
 function resolve(b){
   let cl=0;
-  while(true){const m=mtch(b);if(!m.size)break;cl+=m.size;m.forEach(k=>{const[r,c]=k.split(',').map(Number);b[r][c]=-1;});grav(b);}
+  while(true){
+    const m=mtch(b);
+    if(!m.size) break;
+    cl+=m.size;
+    m.forEach(k=>{ const[r,c]=k.split(',').map(Number); b[r][c]=-1; });
+    grav(b);
+  }
   return cl;
 }
+
 function initBoard(){
   const b=mkB();
-  for(let r=ROWS-4;r<ROWS;r++) for(let c=0;c<COLS;c++) b[r][c]=rnd(2);
-  resolve(b); return b;
+  // Fill bottom INIT_ROWS rows with more variety (harder)
+  for(let r=ROWS-INIT_ROWS;r<ROWS;r++)
+    for(let c=0;c<COLS;c++)
+      b[r][c]=rnd(2); // use 3 types (0,1,2) for initial fill
+  resolve(b);
+  return b;
 }
+
 function init(){
-  board=initBoard();cur=rnd(2);nxt=rnd(2);
-  score=0;drops=0;level=1;over=false;busy=false;aCol=null;
+  board=initBoard();
+  cur=rnd(maxType(1));
+  nxt=rnd(maxType(1));
+  score=0; drops=0; level=1; over=false; busy=false; aCol=null;
 }
 
 function buildUI(){
   calcSize();
-  const wrap=document.getElementById('wrap');
-  wrap.style.width=BW+'px';
+  document.getElementById('wrap').style.width=BW+'px';
 
-  // col indicator
-  const ci=document.getElementById('col-indicator');
-  ci.innerHTML='';ci.style.width=BW+'px';
+  // arrows row
+  const ar=document.getElementById('arrows');
+  ar.innerHTML=''; ar.style.width=BW+'px';
   for(let c=0;c<COLS;c++){
     const d=document.createElement('div');
-    d.className='ci';d.id='ci'+c;d.textContent='▼';
+    d.className='arr-cell'; d.id='ar'+c; d.textContent='▼';
     d.style.width=cs+'px';
-    ci.appendChild(d);
+    ar.appendChild(d);
   }
 
-  // board
+  // board cells
   const bd=document.getElementById('board');
   bd.style.cssText=`width:${BW}px;height:${BH}px;grid-template-columns:repeat(${COLS},${cs}px);grid-template-rows:repeat(${ROWS},${cs}px)`;
   bd.innerHTML='';
-  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
-    const d=document.createElement('div');
-    d.className='cell'+(r===1?' dt':'');
-    d.style.fontSize=(cs*0.5)+'px';
-    d.id=`c${r}_${c}`;
-    bd.appendChild(d);
-  }
+  for(let r=0;r<ROWS;r++)
+    for(let c=0;c<COLS;c++){
+      const d=document.createElement('div');
+      d.className='cell'+(r===1?' dt':'');
+      d.style.fontSize=(cs*0.5)+'px';
+      d.id=`c${r}_${c}`;
+      bd.appendChild(d);
+    }
 
   // tap zones
   const bw=document.getElementById('bwrap');
@@ -215,12 +245,12 @@ function buildUI(){
     const d=document.createElement('div');
     d.className='tz';
     d.style.cssText=`position:absolute;left:${c*cs}px;top:0;width:${cs}px;height:${BH}px;cursor:pointer;z-index:10`;
-    d.addEventListener('pointerdown',e=>{e.preventDefault();setCol(c);drop(c);});
+    d.addEventListener('pointerdown',e=>{ e.preventDefault(); setCol(c); drop(c); });
     d.addEventListener('pointerenter',()=>setCol(c));
     bw.appendChild(d);
   }
 
-  // anim
+  // anim element
   const an=document.getElementById('anim');
   an.style.cssText=`width:${cs}px;height:${cs}px;font-size:${cs*0.5}px`;
   document.getElementById('prog-wrap').style.width=BW+'px';
@@ -229,26 +259,26 @@ function buildUI(){
 
 function setCol(c){
   aCol=c;
-  for(let i=0;i<COLS;i++) document.getElementById('ci'+i)?.classList.toggle('on',i===c);
-  for(let r=0;r<ROWS;r++) document.getElementById(`c${r}_${c}`)?.classList.add('hot');
-  // un-hot others
-  for(let i=0;i<COLS;i++) if(i!==c) for(let r=0;r<ROWS;r++) document.getElementById(`c${r}_${i}`)?.classList.remove('hot');
+  for(let i=0;i<COLS;i++){
+    document.getElementById('ar'+i)?.classList.toggle('on',i===c);
+    for(let r=0;r<ROWS;r++)
+      document.getElementById(`c${r}_${i}`)?.classList.toggle('hot',i===c);
+  }
 }
 
 function paintBoard(){
-  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
-    const el=document.getElementById(`c${r}_${c}`);
-    if(!el)continue;
-    const v=board[r][c];
-    el.textContent=v>=0?DRINKS[v].e:'';
-  }
+  for(let r=0;r<ROWS;r++)
+    for(let c=0;c<COLS;c++){
+      const el=document.getElementById(`c${r}_${c}`);
+      if(el) el.textContent=board[r][c]>=0?DRINKS[board[r][c]].e:'';
+    }
 }
 
 function paintCurrent(){
   const d=DRINKS[cur];
   document.getElementById('cur-emoji').textContent=d.e;
   document.getElementById('cur-name').textContent=d.n;
-  document.getElementById('cur-display').style.borderColor=d.c+'66';
+  document.getElementById('cur-display').style.borderColor=d.c+'88';
 }
 
 function paintHUD(){
@@ -256,64 +286,77 @@ function paintHUD(){
   document.getElementById('level').textContent=level;
   document.getElementById('next-val').textContent=DRINKS[nxt].e;
   document.getElementById('pl').textContent='Level '+level;
-  document.getElementById('pd').textContent=(drops%15)+' / 15 to next level';
-  document.getElementById('prog-bar').style.width=((drops%15)/15*100)+'%';
+  document.getElementById('pd').textContent=(drops%DROPS_PER_LEVEL)+' / '+DROPS_PER_LEVEL+' to next level';
+  document.getElementById('prog-bar').style.width=((drops%DROPS_PER_LEVEL)/DROPS_PER_LEVEL*100)+'%';
 }
 
 function showCombo(msg){
   const el=document.getElementById('combo');
-  el.textContent=msg;el.style.display='block';
-  el.style.animation='none';void el.offsetWidth;
+  el.textContent=msg; el.style.display='block';
+  el.style.animation='none'; void el.offsetWidth;
   el.style.animation='pop .4s cubic-bezier(.36,2,.6,1) both';
-  setTimeout(()=>{el.style.display='none';},1300);
+  setTimeout(()=>{ el.style.display='none'; },1300);
 }
 
 function drop(col){
-  if(over||busy)return;
-  if(board[0][col]>=0)return;
+  if(over||busy) return;
+  if(board[0][col]>=0) return;
   busy=true;
-  const dt=cur;
+
+  const dt=cur; // snapshot current type before anything changes
   const an=document.getElementById('anim');
   an.textContent=DRINKS[dt].e;
   an.style.cssText=`width:${cs}px;height:${cs}px;font-size:${cs*0.5}px;position:absolute;left:${col*cs}px;top:0;opacity:1;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:20`;
-  const dur=180,t0=performance.now();
+
+  const dur=160, t0=performance.now();
   (function animate(now){
-    const p=Math.min((now-t0)/dur,1),ease=p*p;
+    const p=Math.min((now-t0)/dur,1), ease=p*p;
     an.style.top=(ease*BH)+'px';
-    an.style.opacity=String(1-p*0.7);
-    if(p<1){requestAnimationFrame(animate);}
-    else{
-      an.style.display='none';
-      let row=-1;
-      for(let r=ROWS-1;r>=0;r--) if(board[r][col]<0){row=r;break;}
-      if(row<0){busy=false;return;}
-      board[row][col]=dt;
-      const cl=resolve(board);
-      drops++;level=Math.min(Math.floor(drops/15)+1,7);
-      score+=cl*10*level;
-      cur=nxt;nxt=rnd(Math.min(level+1,6));
-      over=board[0].some(v=>v>=0);
-      if(cl>0)showCombo(cl>=9?"🔥 INSANE!":cl>=6?"💥 MEGA!":"✨ NICE!");
-      paintBoard();paintHUD();paintCurrent();
-      if(aCol!==null)setCol(aCol);
-      busy=false;
-      if(over){
-        document.getElementById('go-lv').textContent='Level '+level;
-        document.getElementById('go-sc').textContent=score+' pts';
-        document.getElementById('gameover').style.display='flex';
-      }
+    an.style.opacity=String(1-p*0.6);
+    if(p<1){ requestAnimationFrame(animate); return; }
+
+    an.style.display='none';
+
+    // Find lowest empty row
+    let row=-1;
+    for(let r=ROWS-1;r>=0;r--) if(board[r][col]<0){ row=r; break; }
+    if(row<0){ busy=false; return; }
+
+    board[row][col]=dt;
+    const cl=resolve(board);
+
+    drops++;
+    level=Math.min(Math.floor(drops/DROPS_PER_LEVEL)+1,7);
+    score+=cl*10*level;
+
+    // Advance queue — AFTER snapshotting dt
+    cur=nxt;
+    nxt=rnd(maxType(level));
+
+    over=board[0].some(v=>v>=0);
+
+    if(cl>0) showCombo(cl>=9?"🔥 INSANE!":cl>=6?"💥 MEGA!":cl>=3?"✨ NICE!":"");
+
+    paintBoard(); paintHUD(); paintCurrent();
+    if(aCol!==null) setCol(aCol);
+    busy=false;
+
+    if(over){
+      document.getElementById('go-lv').textContent='Level '+level;
+      document.getElementById('go-sc').textContent=score+' pts';
+      document.getElementById('gameover').style.display='flex';
     }
   })(performance.now());
 }
 
 function start(){
-  init();buildUI();paintBoard();paintHUD();paintCurrent();
+  init(); buildUI(); paintBoard(); paintHUD(); paintCurrent();
   document.getElementById('gameover').style.display='none';
   aCol=null;
 }
 
 document.getElementById('rbtn').addEventListener('click',start);
-window.addEventListener('resize',()=>{buildUI();paintBoard();paintHUD();paintCurrent();if(aCol!==null)setCol(aCol);});
+window.addEventListener('resize',()=>{ buildUI(); paintBoard(); paintHUD(); paintCurrent(); if(aCol!==null) setCol(aCol); });
 start();
 </script>
 </body>
