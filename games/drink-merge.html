@@ -6,62 +6,82 @@
   <title>Drink Merge</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%}body{overflow-y:auto}
+    html,body{width:100%;height:100%;overflow:hidden}
     body{
       background:linear-gradient(170deg,#0a0f1e,#0f2027,#1a3a4a);
       display:flex;align-items:center;justify-content:center;
       font-family:system-ui,sans-serif;
-      user-select:none;-webkit-user-select:none;
-      color:#e8eaf0;
+      user-select:none;-webkit-user-select:none;color:#e8eaf0;
     }
-    #game-wrap{
-      display:flex;flex-direction:column;align-items:center;
-      gap:8px;
+    #wrap{display:flex;flex-direction:column;align-items:center;gap:6px}
+
+    /* HUD */
+    #hud{display:flex;gap:8px}
+    .hb{background:#0c1526;border-radius:10px;padding:7px 0;text-align:center;border:1px solid #1e3a5f;flex:1}
+    .hl{color:#6a85a0;font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+    .hv{font-size:20px;font-weight:800;line-height:1.1}
+
+    /* CURRENT DRINK DISPLAY — single centered drink, not 6 columns */
+    #cur-display{
+      display:flex;align-items:center;justify-content:center;gap:12px;
+      background:#0c1526;border:1px solid #1e3a5f;border-radius:12px;
+      padding:8px 16px;
     }
-    #hud{display:flex;gap:8px;width:100%}
-    .hud-box{flex:1;background:#0c1526;border-radius:10px;padding:7px 6px;text-align:center;border:1px solid #1e3a5f}
-    .hud-label{color:#6a85a0;font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
-    .hud-val{font-size:20px;font-weight:800;line-height:1.1}
+    #cur-emoji{font-size:32px;line-height:1}
+    #cur-label{font-size:11px;color:#6a85a0;line-height:1.4}
+    #cur-name{font-size:13px;font-weight:700;color:#e8eaf0}
 
-    #shooter-row{display:flex;width:100%}
-    .sc{display:flex;align-items:center;justify-content:center;
-      cursor:pointer;border-radius:6px;transition:background 0.1s;
-      flex-direction:column;gap:0px}
-    .sc .icon{transition:opacity 0.1s,transform 0.1s,filter 0.1s;opacity:0.45}
-    .sc .arr{font-size:9px;color:#e8a020;opacity:0;line-height:1;transition:opacity 0.1s}
-    .sc.active .icon{opacity:1;transform:scale(1.2)}
-    .sc.active .arr{opacity:1}
-    .sc.active{background:rgba(232,160,32,0.1)}
-
-    #board-wrap{position:relative}
-    #board{display:grid;
+    /* BOARD */
+    #bwrap{position:relative}
+    #board{
+      display:grid;
       background:linear-gradient(180deg,#060d1a,#0d1b2a);
       border:1.5px solid #1a3050;border-radius:12px;overflow:hidden;
-      box-shadow:0 4px 40px rgba(0,0,0,.6)}
-    .cell{display:flex;align-items:center;justify-content:center;
+      box-shadow:0 4px 40px rgba(0,0,0,.6);
+      cursor:pointer;
+    }
+    .cell{
+      display:flex;align-items:center;justify-content:center;
       border-right:1px solid rgba(255,255,255,0.04);
-      border-bottom:1px solid rgba(255,255,255,0.04)}
+      border-bottom:1px solid rgba(255,255,255,0.04);
+      transition:background 0.1s;
+    }
     .cell.dt{border-top:1px solid rgba(239,68,68,0.3)}
-    .cell.hot{background:rgba(232,160,32,0.08)}
-    .tz{position:absolute;top:0;cursor:pointer;z-index:10}
+    .cell.hot{background:rgba(232,160,32,0.12)}
     #anim{position:absolute;pointer-events:none;z-index:20;display:none;
       align-items:center;justify-content:center}
 
-    #progress-wrap{width:100%}
+    /* COL INDICATOR — shows which column is targeted */
+    #col-indicator{
+      display:flex;gap:0;margin-bottom:-6px;
+    }
+    .ci{
+      display:flex;align-items:flex-end;justify-content:center;
+      font-size:10px;color:#e8a020;opacity:0;transition:opacity 0.1s;
+      height:16px;
+    }
+    .ci.on{opacity:1}
+
+    /* PROGRESS */
+    #prog-wrap{}
     #prog-label{display:flex;justify-content:space-between;color:#8a9ab0;font-size:12px;font-weight:500;margin-bottom:4px}
     #prog-bg{height:4px;background:#0d1b2a;border-radius:99px;overflow:hidden}
     #prog-bar{height:100%;background:linear-gradient(90deg,#34d399,#059669);border-radius:99px;transition:width 0.3s;width:0%}
     #hint{color:#4a6070;font-size:11px;text-align:center;margin-top:5px}
 
+    /* COMBO */
     #combo{position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);
       font-size:36px;font-weight:900;color:#fcd34d;text-shadow:0 0 24px #f59e0b;
       z-index:999;pointer-events:none;display:none}
+
+    /* GAMEOVER */
     #gameover{position:absolute;inset:0;background:rgba(0,0,0,.92);
       display:none;flex-direction:column;align-items:center;justify-content:center;
       gap:10px;z-index:50;border-radius:12px}
-    #replay-btn{margin-top:8px;background:linear-gradient(135deg,#fcd34d,#f59e0b);
+    #rbtn{margin-top:8px;background:linear-gradient(135deg,#fcd34d,#f59e0b);
       color:#0a0f1e;border:none;border-radius:10px;padding:12px 40px;
       font-size:15px;font-weight:800;cursor:pointer}
+
     @keyframes pop{
       0%{transform:translate(-50%,-50%) scale(.3);opacity:0}
       65%{transform:translate(-50%,-50%) scale(1.2);opacity:1}
@@ -70,240 +90,216 @@
   </style>
 </head>
 <body>
-<div id="game-wrap">
+<div id="wrap">
   <div id="hud">
-    <div class="hud-box"><div class="hud-label">Score</div><div class="hud-val" id="score" style="color:#fcd34d">0</div></div>
-    <div class="hud-box"><div class="hud-label">Level</div><div class="hud-val" id="level" style="color:#34d399">1</div></div>
-    <div class="hud-box"><div class="hud-label">Next</div><div class="hud-val" id="next-val">🍊</div></div>
+    <div class="hb"><div class="hl">Score</div><div class="hv" id="score" style="color:#fcd34d">0</div></div>
+    <div class="hb"><div class="hl">Level</div><div class="hv" id="level" style="color:#34d399">1</div></div>
+    <div class="hb"><div class="hl">Next</div><div class="hv" id="next-val">🍊</div></div>
   </div>
-  <div id="shooter-row"></div>
-  <div id="board-wrap">
+
+  <!-- Single prominent current drink display -->
+  <div id="cur-display">
+    <div id="cur-emoji">🧃</div>
+    <div>
+      <div id="cur-label">Current drink</div>
+      <div id="cur-name">Juice Box</div>
+    </div>
+  </div>
+
+  <!-- Column target indicator -->
+  <div id="col-indicator"></div>
+
+  <div id="bwrap">
     <div id="board"></div>
     <div id="anim"></div>
     <div id="combo"></div>
     <div id="gameover">
       <div style="font-size:48px">😵</div>
       <div style="color:#f87171;font-size:24px;font-weight:900">GAME OVER</div>
-      <div id="go-level" style="color:#64748b;font-size:13px"></div>
-      <div id="go-score" style="color:#fcd34d;font-size:30px;font-weight:800"></div>
-      <button id="replay-btn">Play Again</button>
+      <div id="go-lv" style="color:#64748b;font-size:13px"></div>
+      <div id="go-sc" style="color:#fcd34d;font-size:30px;font-weight:800"></div>
+      <button id="rbtn">Play Again</button>
     </div>
   </div>
-  <div id="progress-wrap">
-    <div id="prog-label"><span id="p-level">Level 1</span><span id="p-drops">0 / 15 to next level</span></div>
+
+  <div id="prog-wrap">
+    <div id="prog-label"><span id="pl">Level 1</span><span id="pd">0 / 15 to next level</span></div>
     <div id="prog-bg"><div id="prog-bar"></div></div>
     <div id="hint">Tap a column to drop · Match 3 to clear</div>
   </div>
 </div>
 
 <script>
-const T=[
-  {e:"🧃",c:"#f59e0b"},{e:"🍊",c:"#f97316"},{e:"🍹",c:"#10b981"},
-  {e:"🫐",c:"#8b5cf6"},{e:"🍸",c:"#3b82f6"},{e:"🥂",c:"#fcd34d"},{e:"🍷",c:"#dc2626"}
+const DRINKS=[
+  {e:"🧃",n:"Juice Box",c:"#f59e0b"},
+  {e:"🍊",n:"Orange",c:"#f97316"},
+  {e:"🍹",n:"Tropical",c:"#10b981"},
+  {e:"🫐",n:"Berry",c:"#8b5cf6"},
+  {e:"🍸",n:"Cocktail",c:"#3b82f6"},
+  {e:"🥂",n:"Champagne",c:"#fcd34d"},
+  {e:"🍷",n:"Wine",c:"#dc2626"},
 ];
 const COLS=6,ROWS=10;
 let board,cur,nxt,score,drops,level,over,busy,aCol;
-let cs,BW,BH; // cellSize, boardWidth, boardHeight
+let cs,BW,BH;
 
 function calcSize(){
-  // fixed layout heights
-  const HUD=58,SHOOTER=42,PROGRESS=62,GAPS=8*4,PAD=24;
-  const avH=window.innerHeight-HUD-SHOOTER-PROGRESS-GAPS-PAD;
-  const avW=Math.min(window.innerWidth-24,400);
-  cs=Math.max(Math.min(Math.floor(avW/COLS),Math.floor(avH/ROWS),52),28);
+  const avW=Math.min(window.innerWidth-24,420);
+  const avH=window.innerHeight - 58 - 8 - 62 - 8 - 16 - 8 - 62 - 32; // rough fixed elements
+  cs=Math.max(Math.min(Math.floor(avW/COLS),Math.floor(avH/ROWS),56),28);
   BW=cs*COLS; BH=cs*ROWS;
 }
 
 function rnd(max){return Math.floor(Math.random()*(Math.min(max,6)+1));}
-function mkBoard(){return Array.from({length:ROWS},()=>Array(COLS).fill(-1));}
-
-function gravity(b){
+function mkB(){return Array.from({length:ROWS},()=>Array(COLS).fill(-1));}
+function grav(b){
   for(let c=0;c<COLS;c++){
-    const s=[];
-    for(let r=0;r<ROWS;r++) if(b[r][c]>=0) s.push(b[r][c]);
+    const s=[];for(let r=0;r<ROWS;r++) if(b[r][c]>=0)s.push(b[r][c]);
     for(let r=0;r<ROWS;r++) b[r][c]=-1;
     s.forEach((v,i)=>{b[ROWS-s.length+i][c]=v;});
   }
 }
-
-function matches(b){
+function mtch(b){
   const h=new Set();
-  for(let r=0;r<ROWS;r++)
-    for(let c=0;c<=COLS-3;c++){
-      const a=b[r][c];
-      if(a>=0&&a===b[r][c+1]&&a===b[r][c+2]){
-        h.add(`${r},${c}`);h.add(`${r},${c+1}`);h.add(`${r},${c+2}`);
-      }
-    }
-  for(let c=0;c<COLS;c++)
-    for(let r=0;r<=ROWS-3;r++){
-      const a=b[r][c];
-      if(a>=0&&a===b[r+1][c]&&a===b[r+2][c]){
-        h.add(`${r},${c}`);h.add(`${r+1},${c}`);h.add(`${r+2},${c}`);
-      }
-    }
+  for(let r=0;r<ROWS;r++) for(let c=0;c<=COLS-3;c++){const a=b[r][c];if(a>=0&&a===b[r][c+1]&&a===b[r][c+2]){h.add(`${r},${c}`);h.add(`${r},${c+1}`);h.add(`${r},${c+2}`);}}
+  for(let c=0;c<COLS;c++) for(let r=0;r<=ROWS-3;r++){const a=b[r][c];if(a>=0&&a===b[r+1][c]&&a===b[r+2][c]){h.add(`${r},${c}`);h.add(`${r+1},${c}`);h.add(`${r+2},${c}`);}}
   return h;
 }
-
 function resolve(b){
   let cl=0;
-  while(true){
-    const m=matches(b);
-    if(!m.size) break;
-    cl+=m.size;
-    m.forEach(k=>{const[r,c]=k.split(',').map(Number);b[r][c]=-1;});
-    gravity(b);
-  }
+  while(true){const m=mtch(b);if(!m.size)break;cl+=m.size;m.forEach(k=>{const[r,c]=k.split(',').map(Number);b[r][c]=-1;});grav(b);}
   return cl;
 }
-
 function initBoard(){
-  const b=mkBoard();
-  // fill bottom 4 rows for more interesting start
-  for(let r=ROWS-4;r<ROWS;r++)
-    for(let c=0;c<COLS;c++)
-      b[r][c]=rnd(2);
-  resolve(b);
-  return b;
+  const b=mkB();
+  for(let r=ROWS-4;r<ROWS;r++) for(let c=0;c<COLS;c++) b[r][c]=rnd(2);
+  resolve(b); return b;
 }
-
 function init(){
-  board=initBoard();
-  cur=rnd(2); nxt=rnd(2);
+  board=initBoard();cur=rnd(2);nxt=rnd(2);
   score=0;drops=0;level=1;over=false;busy=false;aCol=null;
 }
 
 function buildUI(){
   calcSize();
-  const gw=document.getElementById('game-wrap');
-  gw.style.width=BW+'px';
+  const wrap=document.getElementById('wrap');
+  wrap.style.width=BW+'px';
 
-  // shooter
-  const sr=document.getElementById('shooter-row');
-  sr.innerHTML='';
-  sr.style.width=BW+'px';
+  // col indicator
+  const ci=document.getElementById('col-indicator');
+  ci.innerHTML='';ci.style.width=BW+'px';
   for(let c=0;c<COLS;c++){
     const d=document.createElement('div');
-    d.className='sc'; d.id='sc'+c;
-    d.style.cssText=`width:${cs}px;height:${cs*0.75}px`;
-    const icon=document.createElement('div');
-    icon.className='icon'; icon.style.fontSize=(cs*0.48)+'px';
-    const arr=document.createElement('div');
-    arr.className='arr'; arr.textContent='▼';
-    d.appendChild(icon); d.appendChild(arr);
-    d.addEventListener('pointerdown',e=>{e.preventDefault();drop(c);});
-    sr.appendChild(d);
+    d.className='ci';d.id='ci'+c;d.textContent='▼';
+    d.style.width=cs+'px';
+    ci.appendChild(d);
   }
 
   // board
   const bd=document.getElementById('board');
   bd.style.cssText=`width:${BW}px;height:${BH}px;grid-template-columns:repeat(${COLS},${cs}px);grid-template-rows:repeat(${ROWS},${cs}px)`;
   bd.innerHTML='';
-  for(let r=0;r<ROWS;r++)
-    for(let c=0;c<COLS;c++){
-      const d=document.createElement('div');
-      d.className='cell'+(r===1?' dt':'');
-      d.style.fontSize=(cs*0.5)+'px';
-      d.id=`cl${r}_${c}`;
-      bd.appendChild(d);
-    }
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    const d=document.createElement('div');
+    d.className='cell'+(r===1?' dt':'');
+    d.style.fontSize=(cs*0.5)+'px';
+    d.id=`c${r}_${c}`;
+    bd.appendChild(d);
+  }
 
   // tap zones
-  const bw=document.getElementById('board-wrap');
+  const bw=document.getElementById('bwrap');
   bw.style.width=BW+'px';
   document.querySelectorAll('.tz').forEach(e=>e.remove());
   for(let c=0;c<COLS;c++){
     const d=document.createElement('div');
     d.className='tz';
-    d.style.cssText=`left:${c*cs}px;width:${cs}px;height:${BH}px`;
-    d.addEventListener('pointerdown',e=>{e.preventDefault();drop(c);});
+    d.style.cssText=`position:absolute;left:${c*cs}px;top:0;width:${cs}px;height:${BH}px;cursor:pointer;z-index:10`;
+    d.addEventListener('pointerdown',e=>{e.preventDefault();setCol(c);drop(c);});
+    d.addEventListener('pointerenter',()=>setCol(c));
     bw.appendChild(d);
   }
 
   // anim
   const an=document.getElementById('anim');
   an.style.cssText=`width:${cs}px;height:${cs}px;font-size:${cs*0.5}px`;
-
-  document.getElementById('progress-wrap').style.width=BW+'px';
+  document.getElementById('prog-wrap').style.width=BW+'px';
+  document.getElementById('cur-display').style.width=BW+'px';
 }
 
-function paintBoard(ac){
-  for(let r=0;r<ROWS;r++)
-    for(let c=0;c<COLS;c++){
-      const el=document.getElementById(`cl${r}_${c}`);
-      const v=board[r][c];
-      el.textContent=v>=0?T[v].e:'';
-      el.classList.toggle('hot',c===ac);
-    }
+function setCol(c){
+  aCol=c;
+  for(let i=0;i<COLS;i++) document.getElementById('ci'+i)?.classList.toggle('on',i===c);
+  for(let r=0;r<ROWS;r++) document.getElementById(`c${r}_${c}`)?.classList.add('hot');
+  // un-hot others
+  for(let i=0;i<COLS;i++) if(i!==c) for(let r=0;r<ROWS;r++) document.getElementById(`c${r}_${i}`)?.classList.remove('hot');
 }
 
-function paintShooter(ac){
-  const t=T[cur];
-  for(let c=0;c<COLS;c++){
-    const el=document.getElementById('sc'+c);
-    el.querySelector('.icon').textContent=t.e;
-    el.classList.toggle('active',c===ac);
+function paintBoard(){
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    const el=document.getElementById(`c${r}_${c}`);
+    if(!el)continue;
+    const v=board[r][c];
+    el.textContent=v>=0?DRINKS[v].e:'';
   }
+}
+
+function paintCurrent(){
+  const d=DRINKS[cur];
+  document.getElementById('cur-emoji').textContent=d.e;
+  document.getElementById('cur-name').textContent=d.n;
+  document.getElementById('cur-display').style.borderColor=d.c+'66';
 }
 
 function paintHUD(){
   document.getElementById('score').textContent=score;
   document.getElementById('level').textContent=level;
-  document.getElementById('next-val').textContent=T[nxt].e;
-  document.getElementById('p-level').textContent='Level '+level;
-  document.getElementById('p-drops').textContent=(drops%15)+' / 15 to next level';
+  document.getElementById('next-val').textContent=DRINKS[nxt].e;
+  document.getElementById('pl').textContent='Level '+level;
+  document.getElementById('pd').textContent=(drops%15)+' / 15 to next level';
   document.getElementById('prog-bar').style.width=((drops%15)/15*100)+'%';
 }
 
 function showCombo(msg){
   const el=document.getElementById('combo');
-  el.textContent=msg; el.style.display='block';
-  el.style.animation='none'; void el.offsetWidth;
+  el.textContent=msg;el.style.display='block';
+  el.style.animation='none';void el.offsetWidth;
   el.style.animation='pop .4s cubic-bezier(.36,2,.6,1) both';
   setTimeout(()=>{el.style.display='none';},1300);
 }
 
 function drop(col){
-  if(over||busy) return;
-  if(board[0][col]>=0) return;
-  busy=true; aCol=col;
-
-  const dt=cur; // snapshot dropped type
-  paintShooter(col); paintBoard(col);
-
+  if(over||busy)return;
+  if(board[0][col]>=0)return;
+  busy=true;
+  const dt=cur;
   const an=document.getElementById('anim');
-  an.textContent=T[dt].e;
-  an.style.cssText=`width:${cs}px;height:${cs}px;font-size:${cs*0.5}px;left:${col*cs}px;top:0px;opacity:1;display:flex`;
-
+  an.textContent=DRINKS[dt].e;
+  an.style.cssText=`width:${cs}px;height:${cs}px;font-size:${cs*0.5}px;position:absolute;left:${col*cs}px;top:0;opacity:1;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:20`;
   const dur=180,t0=performance.now();
   (function animate(now){
-    const p=Math.min((now-t0)/dur,1);
-    an.style.top=(p*p*BH)+'px';
+    const p=Math.min((now-t0)/dur,1),ease=p*p;
+    an.style.top=(ease*BH)+'px';
     an.style.opacity=String(1-p*0.7);
-    if(p<1) requestAnimationFrame(animate);
+    if(p<1){requestAnimationFrame(animate);}
     else{
       an.style.display='none';
-      // place on board
       let row=-1;
       for(let r=ROWS-1;r>=0;r--) if(board[r][col]<0){row=r;break;}
       if(row<0){busy=false;return;}
       board[row][col]=dt;
       const cl=resolve(board);
-      drops++;
-      level=Math.min(Math.floor(drops/15)+1,7);
+      drops++;level=Math.min(Math.floor(drops/15)+1,7);
       score+=cl*10*level;
-      // IMPORTANT: advance queue AFTER placing
-      cur=nxt;
-      nxt=rnd(Math.min(level+1,6));
+      cur=nxt;nxt=rnd(Math.min(level+1,6));
       over=board[0].some(v=>v>=0);
-      if(cl>0) showCombo(cl>=9?"🔥 INSANE!":cl>=6?"💥 MEGA!":"✨ NICE!");
-      paintBoard(null); paintHUD();
-      // paintShooter uses cur which is now updated
-      paintShooter(null);
-      aCol=null; busy=false;
+      if(cl>0)showCombo(cl>=9?"🔥 INSANE!":cl>=6?"💥 MEGA!":"✨ NICE!");
+      paintBoard();paintHUD();paintCurrent();
+      if(aCol!==null)setCol(aCol);
+      busy=false;
       if(over){
-        document.getElementById('go-level').textContent='Level '+level;
-        document.getElementById('go-score').textContent=score+' pts';
+        document.getElementById('go-lv').textContent='Level '+level;
+        document.getElementById('go-sc').textContent=score+' pts';
         document.getElementById('gameover').style.display='flex';
       }
     }
@@ -311,12 +307,13 @@ function drop(col){
 }
 
 function start(){
-  init(); buildUI(); paintBoard(null); paintHUD(); paintShooter(null);
+  init();buildUI();paintBoard();paintHUD();paintCurrent();
   document.getElementById('gameover').style.display='none';
+  aCol=null;
 }
 
-document.getElementById('replay-btn').addEventListener('click',start);
-window.addEventListener('resize',()=>{buildUI();paintBoard(aCol);paintHUD();paintShooter(aCol);});
+document.getElementById('rbtn').addEventListener('click',start);
+window.addEventListener('resize',()=>{buildUI();paintBoard();paintHUD();paintCurrent();if(aCol!==null)setCol(aCol);});
 start();
 </script>
 </body>
