@@ -13,25 +13,25 @@
       font-family:system-ui,sans-serif;
       user-select:none;-webkit-user-select:none;color:#e8eaf0;
     }
-    #wrap{display:flex;flex-direction:column;align-items:center;gap:8px}
-
-    /* HUD — bigger, more readable */
+    #wrap{display:flex;flex-direction:column;align-items:center;gap:7px}
     #hud{display:flex;gap:8px}
-    .hb{background:#0c1526;border-radius:12px;padding:10px 8px;text-align:center;border:1px solid #1e3a5f;flex:1;min-width:80px}
+    .hb{background:#0c1526;border-radius:12px;padding:10px 8px;text-align:center;border:1px solid #1e3a5f;flex:1;min-width:75px}
     .hl{color:#7a95b0;font-size:11px;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px}
-    .hv{font-size:26px;font-weight:900;line-height:1.1}
+    .hv{font-size:24px;font-weight:900;line-height:1.1}
 
-    /* CURRENT DRINK CARD */
     #cur-display{
       display:flex;align-items:center;justify-content:center;gap:14px;
       background:#0c1526;border:1.5px solid #1e3a5f;border-radius:14px;
-      padding:10px 18px;
+      padding:9px 18px;
     }
-    #cur-emoji{font-size:36px;line-height:1}
-    #cur-label{color:#7a95b0;font-size:11px;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
-    #cur-name{font-size:16px;font-weight:700;color:#e8eaf0}
+    #cur-emoji{font-size:34px;line-height:1}
+    #cur-label{color:#7a95b0;font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+    #cur-name{font-size:15px;font-weight:700;color:#e8eaf0}
 
-    /* BOARD */
+    /* DANGER FLASH when new row incoming */
+    #pressure-bar{height:6px;border-radius:99px;overflow:hidden;background:#1a2535}
+    #pressure-fill{height:100%;border-radius:99px;transition:width 0.3s,background 0.3s;width:0%}
+
     #bwrap{position:relative}
     #board{
       display:grid;
@@ -44,28 +44,27 @@
       border-bottom:1px solid rgba(255,255,255,0.05);transition:background 0.1s}
     .cell.dt{border-top:1px solid rgba(239,68,68,0.4)}
     .cell.hot{background:rgba(232,160,32,0.13)}
+    .cell.new-row{animation:flashrow 0.4s ease}
+    @keyframes flashrow{0%{background:rgba(239,68,68,0.4)}100%{background:transparent}}
+
     #anim{position:absolute;pointer-events:none;z-index:20;display:none;
       align-items:center;justify-content:center}
 
-    /* COL ARROWS */
     #arrows{display:flex;margin-bottom:-4px}
     .arr-cell{display:flex;align-items:flex-end;justify-content:center;
       height:14px;font-size:11px;color:#e8a020;opacity:0;transition:opacity 0.1s}
     .arr-cell.on{opacity:1}
 
-    /* PROGRESS */
     #prog-wrap{}
-    #prog-label{display:flex;justify-content:space-between;color:#9aaabb;font-size:13px;font-weight:600;margin-bottom:5px}
-    #prog-bg{height:5px;background:#0d1b2a;border-radius:99px;overflow:hidden}
+    #prog-label{display:flex;justify-content:space-between;color:#9aaabb;font-size:13px;font-weight:600;margin-bottom:4px}
+    #prog-bg{height:4px;background:#0d1b2a;border-radius:99px;overflow:hidden}
     #prog-bar{height:100%;background:linear-gradient(90deg,#34d399,#059669);border-radius:99px;transition:width 0.3s;width:0%}
-    #hint{color:#5a7080;font-size:12px;text-align:center;margin-top:6px}
+    #hint{color:#5a7080;font-size:11px;text-align:center;margin-top:5px}
 
-    /* COMBO */
     #combo{position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);
       font-size:40px;font-weight:900;color:#fcd34d;text-shadow:0 0 30px #f59e0b;
       z-index:999;pointer-events:none;display:none}
 
-    /* GAMEOVER */
     #gameover{position:absolute;inset:0;background:rgba(0,0,0,.93);
       display:none;flex-direction:column;align-items:center;justify-content:center;
       gap:10px;z-index:50;border-radius:12px}
@@ -78,6 +77,13 @@
       65%{transform:translate(-50%,-50%) scale(1.2);opacity:1}
       100%{transform:translate(-50%,-50%) scale(1);opacity:1}
     }
+    @keyframes shake{
+      0%,100%{transform:translateX(0)}
+      20%{transform:translateX(-6px)}
+      40%{transform:translateX(6px)}
+      60%{transform:translateX(-4px)}
+      80%{transform:translateX(4px)}
+    }
   </style>
 </head>
 <body>
@@ -85,7 +91,7 @@
   <div id="hud">
     <div class="hb"><div class="hl">Score</div><div class="hv" id="score" style="color:#fcd34d">0</div></div>
     <div class="hb"><div class="hl">Level</div><div class="hv" id="level" style="color:#34d399">1</div></div>
-    <div class="hb"><div class="hl">Next</div><div class="hv" id="next-val" style="font-size:28px">🍊</div></div>
+    <div class="hb"><div class="hl">Next</div><div class="hv" id="next-val" style="font-size:26px">🍊</div></div>
   </div>
 
   <div id="cur-display">
@@ -94,6 +100,11 @@
       <div id="cur-label">Current drink</div>
       <div id="cur-name">Juice Box</div>
     </div>
+  </div>
+
+  <!-- Pressure bar: fills up → new row pushes in from bottom -->
+  <div id="pressure-bar" style="width:100%">
+    <div id="pressure-fill"></div>
   </div>
 
   <div id="arrows"></div>
@@ -112,45 +123,50 @@
   </div>
 
   <div id="prog-wrap">
-    <div id="prog-label"><span id="pl">Level 1</span><span id="pd">0 / 10 to next level</span></div>
+    <div id="prog-label"><span id="pl">Level 1</span><span id="pd">0 / 8 to next level</span></div>
     <div id="prog-bg"><div id="prog-bar"></div></div>
-    <div id="hint">Tap a column to drop · Match 3 to clear</div>
+    <div id="hint">Tap column to drop · Match 3 · New row every 5 drops!</div>
   </div>
 </div>
 
 <script>
+// 12 drink types
 const DRINKS=[
-  {e:"🧃",n:"Juice Box",c:"#f59e0b"},
-  {e:"🍊",n:"Orange",c:"#f97316"},
-  {e:"🍹",n:"Tropical",c:"#10b981"},
-  {e:"🫐",n:"Berry",c:"#8b5cf6"},
-  {e:"🍸",n:"Cocktail",c:"#3b82f6"},
-  {e:"🥂",n:"Champagne",c:"#fcd34d"},
-  {e:"🍷",n:"Wine",c:"#dc2626"},
+  {e:"🧃",n:"Juice Box",   c:"#f59e0b"},
+  {e:"🍊",n:"Orange",      c:"#f97316"},
+  {e:"🍹",n:"Tropical",    c:"#10b981"},
+  {e:"🫐",n:"Berry",       c:"#8b5cf6"},
+  {e:"🍸",n:"Cocktail",    c:"#3b82f6"},
+  {e:"🥂",n:"Champagne",   c:"#fcd34d"},
+  {e:"🍷",n:"Wine",        c:"#dc2626"},
+  {e:"🍺",n:"Beer",        c:"#ca8a04"},
+  {e:"🧋",n:"Bubble Tea",  c:"#d97706"},
+  {e:"🥤",n:"Soda",        c:"#0891b2"},
+  {e:"🍵",n:"Green Tea",   c:"#16a34a"},
+  {e:"☕",n:"Coffee",      c:"#92400e"},
 ];
-const COLS=6, ROWS=10;
 
-// HARDER: more drinks types from start, faster level up, more initial fill
-// Level unlocks: L1=3types, L2=4, L3=5, L4=6, L5+=7
-// Level up every 10 drops (was 15)
-const DROPS_PER_LEVEL = 10;
+const COLS=5;   // narrower — harder
+const ROWS=10;
+const DROPS_PER_LEVEL=8;    // faster level up
+const NEW_ROW_EVERY=5;      // push new row from bottom every 5 drops
+const INIT_ROWS=5;          // start with 5 rows filled
 
-// Initial board fills 5 rows (was 4) — harder start
-const INIT_ROWS = 5;
+// How many types available per level (starts at 4, adds 1 every 2 levels, max 12)
+function maxType(lv){ return Math.min(3+Math.floor(lv/2), 11); }
 
 let board,cur,nxt,score,drops,level,over,busy,aCol;
 let cs,BW,BH;
+let pressureDrops=0; // counts toward next forced row
 
 function calcSize(){
-  const avW=Math.min(window.innerWidth-24,420);
-  const avH=window.innerHeight - 80 - 8 - 70 - 8 - 14 - 8 - 70 - 24;
-  cs=Math.max(Math.min(Math.floor(avW/COLS),Math.floor(avH/ROWS),54),26);
+  const avW=Math.min(window.innerWidth-24,380);
+  const avH=window.innerHeight - 82 - 8 - 62 - 8 - 8 - 8 - 14 - 8 - 65 - 20;
+  cs=Math.max(Math.min(Math.floor(avW/COLS),Math.floor(avH/ROWS),58),28);
   BW=cs*COLS; BH=cs*ROWS;
 }
 
-function maxType(lv){ return Math.min(lv+1, 6); }
 function rnd(max){ return Math.floor(Math.random()*(max+1)); }
-
 function mkB(){ return Array.from({length:ROWS},()=>Array(COLS).fill(-1)); }
 
 function grav(b){
@@ -193,12 +209,36 @@ function resolve(b){
   return cl;
 }
 
+// Push a new row of drinks up from the bottom (everything shifts up 1)
+function pushRow(){
+  // shift all rows up by 1
+  for(let r=0;r<ROWS-1;r++)
+    for(let c=0;c<COLS;c++)
+      board[r][c]=board[r+1][c];
+  // fill bottom row with new random drinks (avoid instant 3-match)
+  const mt=maxType(level);
+  for(let c=0;c<COLS;c++){
+    let t;
+    do { t=rnd(mt); } while(
+      (c>=2 && board[ROWS-1][c-1]===t && board[ROWS-1][c-2]===t)
+    );
+    board[ROWS-1][c]=t;
+  }
+  // flash bottom row
+  for(let c=0;c<COLS;c++){
+    const el=document.getElementById(`c${ROWS-1}_${c}`);
+    if(el){ el.classList.remove('new-row'); void el.offsetWidth; el.classList.add('new-row'); }
+  }
+  // resolve any accidental matches from push
+  resolve(board);
+}
+
 function initBoard(){
   const b=mkB();
-  // Fill bottom INIT_ROWS rows with more variety (harder)
+  const mt=2; // start with 3 types for init
   for(let r=ROWS-INIT_ROWS;r<ROWS;r++)
     for(let c=0;c<COLS;c++)
-      b[r][c]=rnd(2); // use 3 types (0,1,2) for initial fill
+      b[r][c]=rnd(mt);
   resolve(b);
   return b;
 }
@@ -208,13 +248,14 @@ function init(){
   cur=rnd(maxType(1));
   nxt=rnd(maxType(1));
   score=0; drops=0; level=1; over=false; busy=false; aCol=null;
+  pressureDrops=0;
 }
 
 function buildUI(){
   calcSize();
   document.getElementById('wrap').style.width=BW+'px';
+  document.getElementById('pressure-bar').style.width=BW+'px';
 
-  // arrows row
   const ar=document.getElementById('arrows');
   ar.innerHTML=''; ar.style.width=BW+'px';
   for(let c=0;c<COLS;c++){
@@ -224,7 +265,6 @@ function buildUI(){
     ar.appendChild(d);
   }
 
-  // board cells
   const bd=document.getElementById('board');
   bd.style.cssText=`width:${BW}px;height:${BH}px;grid-template-columns:repeat(${COLS},${cs}px);grid-template-rows:repeat(${ROWS},${cs}px)`;
   bd.innerHTML='';
@@ -237,7 +277,6 @@ function buildUI(){
       bd.appendChild(d);
     }
 
-  // tap zones
   const bw=document.getElementById('bwrap');
   bw.style.width=BW+'px';
   document.querySelectorAll('.tz').forEach(e=>e.remove());
@@ -250,7 +289,6 @@ function buildUI(){
     bw.appendChild(d);
   }
 
-  // anim element
   const an=document.getElementById('anim');
   an.style.cssText=`width:${cs}px;height:${cs}px;font-size:${cs*0.5}px`;
   document.getElementById('prog-wrap').style.width=BW+'px';
@@ -288,6 +326,15 @@ function paintHUD(){
   document.getElementById('pl').textContent='Level '+level;
   document.getElementById('pd').textContent=(drops%DROPS_PER_LEVEL)+' / '+DROPS_PER_LEVEL+' to next level';
   document.getElementById('prog-bar').style.width=((drops%DROPS_PER_LEVEL)/DROPS_PER_LEVEL*100)+'%';
+
+  // Pressure bar — shows how close next forced row is
+  const pct=(pressureDrops/NEW_ROW_EVERY)*100;
+  const fill=document.getElementById('pressure-fill');
+  fill.style.width=pct+'%';
+  // Color: green → yellow → red as it fills
+  const r=pct>66?220:pct>33?200:50;
+  const g=pct>66?50:pct>33?180:180;
+  fill.style.background=`rgb(${r},${g},50)`;
 }
 
 function showCombo(msg){
@@ -303,12 +350,12 @@ function drop(col){
   if(board[0][col]>=0) return;
   busy=true;
 
-  const dt=cur; // snapshot current type before anything changes
+  const dt=cur;
   const an=document.getElementById('anim');
   an.textContent=DRINKS[dt].e;
   an.style.cssText=`width:${cs}px;height:${cs}px;font-size:${cs*0.5}px;position:absolute;left:${col*cs}px;top:0;opacity:1;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:20`;
 
-  const dur=160, t0=performance.now();
+  const dur=150, t0=performance.now();
   (function animate(now){
     const p=Math.min((now-t0)/dur,1), ease=p*p;
     an.style.top=(ease*BH)+'px';
@@ -317,7 +364,6 @@ function drop(col){
 
     an.style.display='none';
 
-    // Find lowest empty row
     let row=-1;
     for(let r=ROWS-1;r>=0;r--) if(board[r][col]<0){ row=r; break; }
     if(row<0){ busy=false; return; }
@@ -326,23 +372,34 @@ function drop(col){
     const cl=resolve(board);
 
     drops++;
-    level=Math.min(Math.floor(drops/DROPS_PER_LEVEL)+1,7);
+    pressureDrops++;
+    level=Math.min(Math.floor(drops/DROPS_PER_LEVEL)+1,12);
     score+=cl*10*level;
 
-    // Advance queue — AFTER snapshotting dt
+    // Advance queue
     cur=nxt;
     nxt=rnd(maxType(level));
 
+    // Push new row every NEW_ROW_EVERY drops
+    if(pressureDrops>=NEW_ROW_EVERY){
+      pressureDrops=0;
+      pushRow();
+      // shake the board
+      const bd=document.getElementById('board');
+      bd.style.animation='none'; void bd.offsetWidth;
+      bd.style.animation='shake 0.3s ease';
+    }
+
     over=board[0].some(v=>v>=0);
 
-    if(cl>0) showCombo(cl>=9?"🔥 INSANE!":cl>=6?"💥 MEGA!":cl>=3?"✨ NICE!":"");
+    if(cl>0) showCombo(cl>=12?"🔥 GODLIKE!":cl>=9?"💥 INSANE!":cl>=6?"✨ MEGA!":"👍 NICE!");
 
     paintBoard(); paintHUD(); paintCurrent();
     if(aCol!==null) setCol(aCol);
     busy=false;
 
     if(over){
-      document.getElementById('go-lv').textContent='Level '+level;
+      document.getElementById('go-lv').textContent='Level '+level+' · '+drops+' drops';
       document.getElementById('go-sc').textContent=score+' pts';
       document.getElementById('gameover').style.display='flex';
     }
