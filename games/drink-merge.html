@@ -2,37 +2,52 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
   <title>Drink Merge</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{width:100%;height:100%;overflow:hidden}
     body{
       background:linear-gradient(170deg,#0a0f1e,#0f2027,#1a3a4a);
-      display:flex;align-items:center;justify-content:center;
+      display:flex;flex-direction:column;align-items:center;
       font-family:system-ui,sans-serif;
       user-select:none;-webkit-user-select:none;color:#e8eaf0;
+      padding:10px 12px 12px;
     }
-    #wrap{display:flex;flex-direction:column;align-items:center;gap:7px}
-    #hud{display:flex;gap:8px}
-    .hb{background:#0c1526;border-radius:12px;padding:10px 8px;text-align:center;border:1px solid #1e3a5f;flex:1;min-width:75px}
-    .hl{color:#7a95b0;font-size:11px;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px}
-    .hv{font-size:24px;font-weight:900;line-height:1.1}
 
+    /* HUD */
+    #hud{display:flex;gap:6px;width:100%;margin-bottom:6px}
+    .hb{background:#0c1526;border-radius:10px;padding:8px 6px;text-align:center;border:1px solid #1e3a5f;flex:1}
+    .hl{color:#7a95b0;font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+    .hv{font-size:22px;font-weight:900;line-height:1.1}
+
+    /* CURRENT DRINK + INFO BTN */
+    #cur-row{display:flex;gap:6px;width:100%;margin-bottom:6px;align-items:stretch}
     #cur-display{
-      display:flex;align-items:center;justify-content:center;gap:14px;
-      background:#0c1526;border:1.5px solid #1e3a5f;border-radius:14px;
-      padding:9px 18px;
+      flex:1;display:flex;align-items:center;gap:12px;
+      background:#0c1526;border:1.5px solid #1e3a5f;border-radius:12px;
+      padding:8px 14px;
     }
-    #cur-emoji{font-size:34px;line-height:1}
-    #cur-label{color:#7a95b0;font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
-    #cur-name{font-size:15px;font-weight:700;color:#e8eaf0}
+    #cur-emoji{font-size:30px;line-height:1}
+    #cur-label{color:#7a95b0;font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:1px}
+    #cur-name{font-size:14px;font-weight:700;color:#e8eaf0}
+    #info-btn{
+      width:44px;background:#0c1526;border:1.5px solid #1e3a5f;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:20px;cursor:pointer;flex-shrink:0;color:#7a95b0;
+      transition:border-color 0.2s,color 0.2s;
+    }
+    #info-btn:hover{border-color:#e8a020;color:#e8a020}
 
-    /* DANGER FLASH when new row incoming */
-    #pressure-bar{height:6px;border-radius:99px;overflow:hidden;background:#1a2535}
-    #pressure-fill{height:100%;border-radius:99px;transition:width 0.3s,background 0.3s;width:0%}
+    /* PRESSURE BAR */
+    #pbar-row{display:flex;align-items:center;gap:8px;width:100%;margin-bottom:4px}
+    #pbar-label{font-size:10px;color:#7a95b0;white-space:nowrap;text-transform:uppercase;letter-spacing:1px}
+    #pbar-bg{flex:1;height:6px;background:#1a2535;border-radius:99px;overflow:hidden}
+    #pbar-fill{height:100%;border-radius:99px;transition:width 0.3s,background 0.3s;width:0%}
+    #pbar-count{font-size:11px;color:#9aaabb;font-weight:700;white-space:nowrap;min-width:44px;text-align:right}
 
-    #bwrap{position:relative}
+    /* BOARD */
+    #bwrap{position:relative;flex-shrink:0}
     #board{
       display:grid;
       background:linear-gradient(180deg,#060d1a,#0d1b2a);
@@ -44,33 +59,57 @@
       border-bottom:1px solid rgba(255,255,255,0.05);transition:background 0.1s}
     .cell.dt{border-top:1px solid rgba(239,68,68,0.4)}
     .cell.hot{background:rgba(232,160,32,0.13)}
-    .cell.new-row{animation:flashrow 0.4s ease}
-    @keyframes flashrow{0%{background:rgba(239,68,68,0.4)}100%{background:transparent}}
-
+    .cell.flash{animation:flashrow 0.4s ease}
+    @keyframes flashrow{0%{background:rgba(239,68,68,0.5)}100%{background:transparent}}
     #anim{position:absolute;pointer-events:none;z-index:20;display:none;
       align-items:center;justify-content:center}
 
-    #arrows{display:flex;margin-bottom:-4px}
-    .arr-cell{display:flex;align-items:flex-end;justify-content:center;
-      height:14px;font-size:11px;color:#e8a020;opacity:0;transition:opacity 0.1s}
-    .arr-cell.on{opacity:1}
-
-    #prog-wrap{}
-    #prog-label{display:flex;justify-content:space-between;color:#9aaabb;font-size:13px;font-weight:600;margin-bottom:4px}
-    #prog-bg{height:4px;background:#0d1b2a;border-radius:99px;overflow:hidden}
+    /* PROGRESS */
+    #prog-row{display:flex;justify-content:space-between;color:#9aaabb;font-size:12px;font-weight:600;margin-top:6px;width:100%}
+    #prog-bg{height:4px;background:#0d1b2a;border-radius:99px;overflow:hidden;width:100%;margin-top:4px}
     #prog-bar{height:100%;background:linear-gradient(90deg,#34d399,#059669);border-radius:99px;transition:width 0.3s;width:0%}
-    #hint{color:#5a7080;font-size:11px;text-align:center;margin-top:5px}
+    #hint{color:#4a6070;font-size:10px;text-align:center;margin-top:4px;width:100%}
 
+    /* COMBO */
     #combo{position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);
-      font-size:40px;font-weight:900;color:#fcd34d;text-shadow:0 0 30px #f59e0b;
+      font-size:36px;font-weight:900;color:#fcd34d;text-shadow:0 0 30px #f59e0b;
       z-index:999;pointer-events:none;display:none}
 
+    /* GAMEOVER */
     #gameover{position:absolute;inset:0;background:rgba(0,0,0,.93);
       display:none;flex-direction:column;align-items:center;justify-content:center;
       gap:10px;z-index:50;border-radius:12px}
     #rbtn{margin-top:8px;background:linear-gradient(135deg,#fcd34d,#f59e0b);
-      color:#0a0f1e;border:none;border-radius:10px;padding:13px 44px;
-      font-size:16px;font-weight:800;cursor:pointer}
+      color:#0a0f1e;border:none;border-radius:10px;padding:12px 40px;
+      font-size:15px;font-weight:800;cursor:pointer}
+
+    /* INFO MODAL */
+    #info-modal{
+      display:none;position:fixed;inset:0;z-index:200;
+      background:rgba(0,0,0,0.88);
+      align-items:center;justify-content:center;padding:16px;
+    }
+    #info-modal.open{display:flex}
+    #info-box{
+      background:#111520;border:1px solid #1e3a5f;border-radius:20px;
+      width:100%;max-width:400px;max-height:88vh;
+      overflow-y:auto;padding:20px;
+    }
+    #info-box h2{font-size:18px;font-weight:900;margin-bottom:16px;color:#fcd34d}
+    #info-box h3{font-size:13px;font-weight:700;color:#e8a020;margin:14px 0 6px;text-transform:uppercase;letter-spacing:1px}
+    #info-box p{font-size:13px;color:#9aaabb;line-height:1.6;margin-bottom:6px}
+    #info-box .rule{display:flex;gap:10px;margin-bottom:8px;align-items:flex-start}
+    #info-box .rule-icon{font-size:20px;flex-shrink:0;margin-top:1px}
+    #info-box .rule-text{font-size:13px;color:#9aaabb;line-height:1.5}
+    #info-box .rule-text strong{color:#e8eaf0}
+    #info-close{
+      width:100%;margin-top:20px;background:linear-gradient(135deg,#fcd34d,#f59e0b);
+      color:#0a0f1e;border:none;border-radius:10px;padding:12px;
+      font-size:15px;font-weight:800;cursor:pointer;
+    }
+    .drinks-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+    .drink-pill{background:#0c1526;border:1px solid #1e3a5f;border-radius:8px;
+      padding:5px 10px;font-size:12px;color:#9aaabb;display:flex;align-items:center;gap:6px}
 
     @keyframes pop{
       0%{transform:translate(-50%,-50%) scale(.3);opacity:0}
@@ -79,21 +118,22 @@
     }
     @keyframes shake{
       0%,100%{transform:translateX(0)}
-      20%{transform:translateX(-6px)}
-      40%{transform:translateX(6px)}
-      60%{transform:translateX(-4px)}
-      80%{transform:translateX(4px)}
+      20%{transform:translateX(-5px)}
+      40%{transform:translateX(5px)}
+      60%{transform:translateX(-3px)}
+      80%{transform:translateX(3px)}
     }
   </style>
 </head>
 <body>
-<div id="wrap">
-  <div id="hud">
-    <div class="hb"><div class="hl">Score</div><div class="hv" id="score" style="color:#fcd34d">0</div></div>
-    <div class="hb"><div class="hl">Level</div><div class="hv" id="level" style="color:#34d399">1</div></div>
-    <div class="hb"><div class="hl">Next</div><div class="hv" id="next-val" style="font-size:26px">🍊</div></div>
-  </div>
 
+<div id="hud">
+  <div class="hb"><div class="hl">Score</div><div class="hv" id="score" style="color:#fcd34d">0</div></div>
+  <div class="hb"><div class="hl">Level</div><div class="hv" id="level" style="color:#34d399">1</div></div>
+  <div class="hb"><div class="hl">Next</div><div class="hv" id="next-val" style="font-size:24px">🍊</div></div>
+</div>
+
+<div id="cur-row">
   <div id="cur-display">
     <div id="cur-emoji">🧃</div>
     <div>
@@ -101,72 +141,118 @@
       <div id="cur-name">Juice Box</div>
     </div>
   </div>
+  <div id="info-btn" onclick="openInfo()">ℹ️</div>
+</div>
 
-  <!-- Pressure bar: fills up → new row pushes in from bottom -->
-  <div id="pressure-bar" style="width:100%">
-    <div id="pressure-fill"></div>
+<div id="pbar-row">
+  <div id="pbar-label">New row</div>
+  <div id="pbar-bg"><div id="pbar-fill"></div></div>
+  <div id="pbar-count">5 drops</div>
+</div>
+
+<div id="bwrap">
+  <div id="board"></div>
+  <div id="anim"></div>
+  <div id="combo"></div>
+  <div id="gameover">
+    <div style="font-size:48px">😵</div>
+    <div style="color:#f87171;font-size:22px;font-weight:900">GAME OVER</div>
+    <div id="go-lv" style="color:#64748b;font-size:13px"></div>
+    <div id="go-sc" style="color:#fcd34d;font-size:28px;font-weight:800"></div>
+    <button id="rbtn">Play Again</button>
   </div>
+</div>
 
-  <div id="arrows"></div>
+<div id="prog-row"><span id="pl">Level 1</span><span id="pd">0 / 8 to next level</span></div>
+<div id="prog-bg"><div id="prog-bar"></div></div>
+<div id="hint">Tap column to drop · Match 3 to clear</div>
 
-  <div id="bwrap">
-    <div id="board"></div>
-    <div id="anim"></div>
-    <div id="combo"></div>
-    <div id="gameover">
-      <div style="font-size:52px">😵</div>
-      <div style="color:#f87171;font-size:26px;font-weight:900">GAME OVER</div>
-      <div id="go-lv" style="color:#64748b;font-size:14px"></div>
-      <div id="go-sc" style="color:#fcd34d;font-size:32px;font-weight:800"></div>
-      <button id="rbtn">Play Again</button>
+<!-- INFO MODAL -->
+<div id="info-modal">
+  <div id="info-box">
+    <h2>🍹 Drink Merge — How to Play</h2>
+
+    <h3>Goal</h3>
+    <p>Keep the board from filling up. Match drinks to clear them and survive as long as possible.</p>
+
+    <h3>Basic Rules</h3>
+    <div class="rule"><div class="rule-icon">👆</div><div class="rule-text"><strong>Tap a column</strong> to drop the current drink into it.</div></div>
+    <div class="rule"><div class="rule-icon">3️⃣</div><div class="rule-text"><strong>Match 3 or more</strong> identical drinks in a row or column to clear them.</div></div>
+    <div class="rule"><div class="rule-icon">⬇️</div><div class="rule-text"><strong>Gravity</strong> pulls drinks down after a clear. Chain reactions give bonus points.</div></div>
+    <div class="rule"><div class="rule-icon">💀</div><div class="rule-text"><strong>Game over</strong> when any drink reaches the top row.</div></div>
+
+    <h3>Pressure Bar</h3>
+    <div class="rule"><div class="rule-icon">🟥</div><div class="rule-text">The red bar fills with every drop. When it's full, <strong>a new row is pushed up from the bottom</strong> automatically — ready or not.</div></div>
+    <div class="rule"><div class="rule-icon">⚠️</div><div class="rule-text">New rows arrive every <strong>5 drops</strong>. Clear fast or get buried.</div></div>
+
+    <h3>Scoring</h3>
+    <div class="rule"><div class="rule-icon">✨</div><div class="rule-text">Each cleared drink = <strong>10 × current level</strong> points.</div></div>
+    <div class="rule"><div class="rule-icon">💥</div><div class="rule-text">Clear 6+ drinks at once = MEGA bonus.</div></div>
+    <div class="rule"><div class="rule-icon">🔥</div><div class="rule-text">Clear 12+ drinks at once = GODLIKE bonus.</div></div>
+
+    <h3>Levels</h3>
+    <div class="rule"><div class="rule-icon">📈</div><div class="rule-text">Level up every <strong>8 drops</strong>. Higher levels unlock more drink types — making matches harder to plan.</div></div>
+
+    <h3>12 Drink Types</h3>
+    <div class="drinks-grid">
+      <div class="drink-pill">🧃 Juice Box</div>
+      <div class="drink-pill">🍊 Orange</div>
+      <div class="drink-pill">🍹 Tropical</div>
+      <div class="drink-pill">🫐 Berry</div>
+      <div class="drink-pill">🍸 Cocktail</div>
+      <div class="drink-pill">🥂 Champagne</div>
+      <div class="drink-pill">🍷 Wine</div>
+      <div class="drink-pill">🍺 Beer</div>
+      <div class="drink-pill">🧋 Bubble Tea</div>
+      <div class="drink-pill">🥤 Soda</div>
+      <div class="drink-pill">🍵 Green Tea</div>
+      <div class="drink-pill">☕ Coffee</div>
     </div>
-  </div>
 
-  <div id="prog-wrap">
-    <div id="prog-label"><span id="pl">Level 1</span><span id="pd">0 / 8 to next level</span></div>
-    <div id="prog-bg"><div id="prog-bar"></div></div>
-    <div id="hint">Tap column to drop · Match 3 · New row every 5 drops!</div>
+    <button id="info-close" onclick="closeInfo()">Got it, let's play!</button>
   </div>
 </div>
 
 <script>
-// 12 drink types
 const DRINKS=[
-  {e:"🧃",n:"Juice Box",   c:"#f59e0b"},
-  {e:"🍊",n:"Orange",      c:"#f97316"},
-  {e:"🍹",n:"Tropical",    c:"#10b981"},
-  {e:"🫐",n:"Berry",       c:"#8b5cf6"},
-  {e:"🍸",n:"Cocktail",    c:"#3b82f6"},
-  {e:"🥂",n:"Champagne",   c:"#fcd34d"},
-  {e:"🍷",n:"Wine",        c:"#dc2626"},
-  {e:"🍺",n:"Beer",        c:"#ca8a04"},
-  {e:"🧋",n:"Bubble Tea",  c:"#d97706"},
-  {e:"🥤",n:"Soda",        c:"#0891b2"},
-  {e:"🍵",n:"Green Tea",   c:"#16a34a"},
-  {e:"☕",n:"Coffee",      c:"#92400e"},
+  {e:"🧃",n:"Juice Box",c:"#f59e0b"},
+  {e:"🍊",n:"Orange",c:"#f97316"},
+  {e:"🍹",n:"Tropical",c:"#10b981"},
+  {e:"🫐",n:"Berry",c:"#8b5cf6"},
+  {e:"🍸",n:"Cocktail",c:"#3b82f6"},
+  {e:"🥂",n:"Champagne",c:"#fcd34d"},
+  {e:"🍷",n:"Wine",c:"#dc2626"},
+  {e:"🍺",n:"Beer",c:"#ca8a04"},
+  {e:"🧋",n:"Bubble Tea",c:"#d97706"},
+  {e:"🥤",n:"Soda",c:"#0891b2"},
+  {e:"🍵",n:"Green Tea",c:"#16a34a"},
+  {e:"☕",n:"Coffee",c:"#92400e"},
 ];
+const COLS=5, ROWS=10;
+const DROPS_PER_LEVEL=8;
+const NEW_ROW_EVERY=5;
+const INIT_ROWS=3; // start with 3 rows
 
-const COLS=5;   // narrower — harder
-const ROWS=10;
-const DROPS_PER_LEVEL=8;    // faster level up
-const NEW_ROW_EVERY=5;      // push new row from bottom every 5 drops
-const INIT_ROWS=5;          // start with 5 rows filled
+function maxType(lv){ return Math.min(3+Math.floor(lv/2),11); }
+function rnd(max){ return Math.floor(Math.random()*(max+1)); }
 
-// How many types available per level (starts at 4, adds 1 every 2 levels, max 12)
-function maxType(lv){ return Math.min(3+Math.floor(lv/2), 11); }
-
-let board,cur,nxt,score,drops,level,over,busy,aCol;
+let board,cur,nxt,score,drops,level,over,busy,aCol,pressureDrops;
 let cs,BW,BH;
-let pressureDrops=0; // counts toward next forced row
 
 function calcSize(){
-  const avW=Math.min(window.innerWidth-24,380);
-  const avH=window.innerHeight - 82 - 8 - 62 - 8 - 8 - 8 - 14 - 8 - 65 - 20;
-  cs=Math.max(Math.min(Math.floor(avW/COLS),Math.floor(avH/ROWS),58),28);
+  // measure actual available height dynamically
+  const totalH=window.innerHeight;
+  const hudH=document.getElementById('hud').offsetHeight||50;
+  const curH=document.getElementById('cur-row').offsetHeight||54;
+  const pbarH=document.getElementById('pbar-row').offsetHeight||22;
+  const progH=52; // prog-row + bar + hint
+  const pad=10+12+6+6+6+6; // body padding + gaps
+  const avH=totalH-hudH-curH-pbarH-progH-pad;
+  const avW=window.innerWidth-24;
+  cs=Math.max(Math.min(Math.floor(avW/COLS),Math.floor(avH/ROWS),60),28);
   BW=cs*COLS; BH=cs*ROWS;
 }
 
-function rnd(max){ return Math.floor(Math.random()*(max+1)); }
 function mkB(){ return Array.from({length:ROWS},()=>Array(COLS).fill(-1)); }
 
 function grav(b){
@@ -200,8 +286,7 @@ function mtch(b){
 function resolve(b){
   let cl=0;
   while(true){
-    const m=mtch(b);
-    if(!m.size) break;
+    const m=mtch(b); if(!m.size) break;
     cl+=m.size;
     m.forEach(k=>{ const[r,c]=k.split(',').map(Number); b[r][c]=-1; });
     grav(b);
@@ -209,61 +294,45 @@ function resolve(b){
   return cl;
 }
 
-// Push a new row of drinks up from the bottom (everything shifts up 1)
 function pushRow(){
-  // shift all rows up by 1
   for(let r=0;r<ROWS-1;r++)
     for(let c=0;c<COLS;c++)
       board[r][c]=board[r+1][c];
-  // fill bottom row with new random drinks (avoid instant 3-match)
   const mt=maxType(level);
   for(let c=0;c<COLS;c++){
     let t;
-    do { t=rnd(mt); } while(
-      (c>=2 && board[ROWS-1][c-1]===t && board[ROWS-1][c-2]===t)
-    );
+    do { t=rnd(mt); } while(c>=2&&board[ROWS-1][c-1]===t&&board[ROWS-1][c-2]===t);
     board[ROWS-1][c]=t;
   }
+  resolve(board);
   // flash bottom row
   for(let c=0;c<COLS;c++){
     const el=document.getElementById(`c${ROWS-1}_${c}`);
-    if(el){ el.classList.remove('new-row'); void el.offsetWidth; el.classList.add('new-row'); }
+    if(el){ el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
   }
-  // resolve any accidental matches from push
-  resolve(board);
+  const bd=document.getElementById('board');
+  bd.style.animation='none'; void bd.offsetWidth; bd.style.animation='shake 0.3s ease';
 }
 
 function initBoard(){
   const b=mkB();
-  const mt=2; // start with 3 types for init
   for(let r=ROWS-INIT_ROWS;r<ROWS;r++)
     for(let c=0;c<COLS;c++)
-      b[r][c]=rnd(mt);
+      b[r][c]=rnd(2);
   resolve(b);
   return b;
 }
 
 function init(){
   board=initBoard();
-  cur=rnd(maxType(1));
-  nxt=rnd(maxType(1));
-  score=0; drops=0; level=1; over=false; busy=false; aCol=null;
-  pressureDrops=0;
+  cur=rnd(maxType(1)); nxt=rnd(maxType(1));
+  score=0; drops=0; level=1; over=false; busy=false; aCol=null; pressureDrops=0;
 }
 
 function buildUI(){
   calcSize();
-  document.getElementById('wrap').style.width=BW+'px';
-  document.getElementById('pressure-bar').style.width=BW+'px';
-
-  const ar=document.getElementById('arrows');
-  ar.innerHTML=''; ar.style.width=BW+'px';
-  for(let c=0;c<COLS;c++){
-    const d=document.createElement('div');
-    d.className='arr-cell'; d.id='ar'+c; d.textContent='▼';
-    d.style.width=cs+'px';
-    ar.appendChild(d);
-  }
+  const bw=document.getElementById('bwrap');
+  bw.style.width=BW+'px';
 
   const bd=document.getElementById('board');
   bd.style.cssText=`width:${BW}px;height:${BH}px;grid-template-columns:repeat(${COLS},${cs}px);grid-template-rows:repeat(${ROWS},${cs}px)`;
@@ -277,8 +346,6 @@ function buildUI(){
       bd.appendChild(d);
     }
 
-  const bw=document.getElementById('bwrap');
-  bw.style.width=BW+'px';
   document.querySelectorAll('.tz').forEach(e=>e.remove());
   for(let c=0;c<COLS;c++){
     const d=document.createElement('div');
@@ -291,14 +358,17 @@ function buildUI(){
 
   const an=document.getElementById('anim');
   an.style.cssText=`width:${cs}px;height:${cs}px;font-size:${cs*0.5}px`;
-  document.getElementById('prog-wrap').style.width=BW+'px';
-  document.getElementById('cur-display').style.width=BW+'px';
+
+  // set widths for full-width elements
+  ['hud','cur-row','pbar-row','prog-row','prog-bg','hint'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.width=BW+'px';
+  });
 }
 
 function setCol(c){
   aCol=c;
   for(let i=0;i<COLS;i++){
-    document.getElementById('ar'+i)?.classList.toggle('on',i===c);
     for(let r=0;r<ROWS;r++)
       document.getElementById(`c${r}_${i}`)?.classList.toggle('hot',i===c);
   }
@@ -326,18 +396,16 @@ function paintHUD(){
   document.getElementById('pl').textContent='Level '+level;
   document.getElementById('pd').textContent=(drops%DROPS_PER_LEVEL)+' / '+DROPS_PER_LEVEL+' to next level';
   document.getElementById('prog-bar').style.width=((drops%DROPS_PER_LEVEL)/DROPS_PER_LEVEL*100)+'%';
-
-  // Pressure bar — shows how close next forced row is
-  const pct=(pressureDrops/NEW_ROW_EVERY)*100;
-  const fill=document.getElementById('pressure-fill');
-  fill.style.width=pct+'%';
-  // Color: green → yellow → red as it fills
-  const r=pct>66?220:pct>33?200:50;
-  const g=pct>66?50:pct>33?180:180;
-  fill.style.background=`rgb(${r},${g},50)`;
+  const pct=pressureDrops/NEW_ROW_EVERY;
+  document.getElementById('pbar-fill').style.width=(pct*100)+'%';
+  const r2=Math.floor(50+pct*170), g2=Math.floor(180-pct*150);
+  document.getElementById('pbar-fill').style.background=`rgb(${r2},${g2},50)`;
+  const rem=NEW_ROW_EVERY-pressureDrops;
+  document.getElementById('pbar-count').textContent=rem+(rem===1?' drop':' drops');
 }
 
 function showCombo(msg){
+  if(!msg) return;
   const el=document.getElementById('combo');
   el.textContent=msg; el.style.display='block';
   el.style.animation='none'; void el.offsetWidth;
@@ -349,55 +417,32 @@ function drop(col){
   if(over||busy) return;
   if(board[0][col]>=0) return;
   busy=true;
-
   const dt=cur;
   const an=document.getElementById('anim');
   an.textContent=DRINKS[dt].e;
   an.style.cssText=`width:${cs}px;height:${cs}px;font-size:${cs*0.5}px;position:absolute;left:${col*cs}px;top:0;opacity:1;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:20`;
-
-  const dur=150, t0=performance.now();
+  const dur=140,t0=performance.now();
   (function animate(now){
-    const p=Math.min((now-t0)/dur,1), ease=p*p;
+    const p=Math.min((now-t0)/dur,1),ease=p*p;
     an.style.top=(ease*BH)+'px';
     an.style.opacity=String(1-p*0.6);
     if(p<1){ requestAnimationFrame(animate); return; }
-
     an.style.display='none';
-
     let row=-1;
     for(let r=ROWS-1;r>=0;r--) if(board[r][col]<0){ row=r; break; }
     if(row<0){ busy=false; return; }
-
     board[row][col]=dt;
     const cl=resolve(board);
-
-    drops++;
-    pressureDrops++;
+    drops++; pressureDrops++;
     level=Math.min(Math.floor(drops/DROPS_PER_LEVEL)+1,12);
     score+=cl*10*level;
-
-    // Advance queue
-    cur=nxt;
-    nxt=rnd(maxType(level));
-
-    // Push new row every NEW_ROW_EVERY drops
-    if(pressureDrops>=NEW_ROW_EVERY){
-      pressureDrops=0;
-      pushRow();
-      // shake the board
-      const bd=document.getElementById('board');
-      bd.style.animation='none'; void bd.offsetWidth;
-      bd.style.animation='shake 0.3s ease';
-    }
-
+    cur=nxt; nxt=rnd(maxType(level));
+    if(pressureDrops>=NEW_ROW_EVERY){ pressureDrops=0; pushRow(); }
     over=board[0].some(v=>v>=0);
-
-    if(cl>0) showCombo(cl>=12?"🔥 GODLIKE!":cl>=9?"💥 INSANE!":cl>=6?"✨ MEGA!":"👍 NICE!");
-
+    if(cl>0) showCombo(cl>=12?"🔥 GODLIKE!":cl>=9?"💥 INSANE!":cl>=6?"✨ MEGA!":cl>=3?"👍 NICE!":"");
     paintBoard(); paintHUD(); paintCurrent();
     if(aCol!==null) setCol(aCol);
     busy=false;
-
     if(over){
       document.getElementById('go-lv').textContent='Level '+level+' · '+drops+' drops';
       document.getElementById('go-sc').textContent=score+' pts';
@@ -406,6 +451,9 @@ function drop(col){
   })(performance.now());
 }
 
+function openInfo(){ document.getElementById('info-modal').classList.add('open'); }
+function closeInfo(){ document.getElementById('info-modal').classList.remove('open'); }
+
 function start(){
   init(); buildUI(); paintBoard(); paintHUD(); paintCurrent();
   document.getElementById('gameover').style.display='none';
@@ -413,7 +461,7 @@ function start(){
 }
 
 document.getElementById('rbtn').addEventListener('click',start);
-window.addEventListener('resize',()=>{ buildUI(); paintBoard(); paintHUD(); paintCurrent(); if(aCol!==null) setCol(aCol); });
+window.addEventListener('resize',()=>{ buildUI(); paintBoard(); paintHUD(); paintCurrent(); });
 start();
 </script>
 </body>
