@@ -165,7 +165,7 @@
 
 <div id="prog-row"><span id="pl">Level 1</span><span id="pd">0 / 8 to next level</span></div>
 <div id="prog-bg"><div id="prog-bar"></div></div>
-<div id="hint">Tap column to drop · Match 3 to clear</div>
+<div id="hint" id="hint">Tap column to drop · Match 3 to clear</div>
 
 <!-- INFO MODAL -->
 <div id="info-modal">
@@ -229,11 +229,31 @@ const DRINKS=[
   {e:"☕",n:"Coffee",c:"#92400e"},
 ];
 const COLS=5, ROWS=10;
-const DROPS_PER_LEVEL=8;
-const NEW_ROW_EVERY=5;
-const INIT_ROWS=3; // start with 3 rows
+const INIT_ROWS=3;
 
-function maxType(lv){ return Math.min(3+Math.floor(lv/2),11); }
+// Progressive difficulty — easy start, brutal end
+function maxType(lv){
+  // L1-2: 3 types, L3-4: 4 types, L5-6: 5 types, L7+: adds 1 per level up to 12
+  if(lv<=2) return 2;
+  if(lv<=4) return 3;
+  if(lv<=6) return 4;
+  return Math.min(3+lv, 11);
+}
+
+function dropsPerLevel(lv){
+  // Slower leveling early so player gets comfortable
+  if(lv<=2) return 12;
+  if(lv<=4) return 10;
+  return 8;
+}
+
+function newRowEvery(lv){
+  // New row comes less often early, more often late
+  if(lv<=2) return 10; // very forgiving
+  if(lv<=4) return 8;
+  if(lv<=6) return 6;
+  return 5; // brutal from level 7+
+}
 function rnd(max){ return Math.floor(Math.random()*(max+1)); }
 
 let board,cur,nxt,score,drops,level,over,busy,aCol,pressureDrops;
@@ -390,17 +410,19 @@ function paintCurrent(){
 }
 
 function paintHUD(){
+  const dpl=dropsPerLevel(level);
+  const nre=newRowEvery(level);
   document.getElementById('score').textContent=score;
   document.getElementById('level').textContent=level;
   document.getElementById('next-val').textContent=DRINKS[nxt].e;
   document.getElementById('pl').textContent='Level '+level;
-  document.getElementById('pd').textContent=(drops%DROPS_PER_LEVEL)+' / '+DROPS_PER_LEVEL+' to next level';
-  document.getElementById('prog-bar').style.width=((drops%DROPS_PER_LEVEL)/DROPS_PER_LEVEL*100)+'%';
-  const pct=pressureDrops/NEW_ROW_EVERY;
+  document.getElementById('pd').textContent=(drops%dpl)+' / '+dpl+' to next level';
+  document.getElementById('prog-bar').style.width=((drops%dpl)/dpl*100)+'%';
+  const pct=pressureDrops/nre;
   document.getElementById('pbar-fill').style.width=(pct*100)+'%';
   const r2=Math.floor(50+pct*170), g2=Math.floor(180-pct*150);
   document.getElementById('pbar-fill').style.background=`rgb(${r2},${g2},50)`;
-  const rem=NEW_ROW_EVERY-pressureDrops;
+  const rem=nre-pressureDrops;
   document.getElementById('pbar-count').textContent=rem+(rem===1?' drop':' drops');
 }
 
@@ -433,11 +455,11 @@ function drop(col){
     if(row<0){ busy=false; return; }
     board[row][col]=dt;
     const cl=resolve(board);
-    drops++; pressureDrops++;
-    level=Math.min(Math.floor(drops/DROPS_PER_LEVEL)+1,12);
+    const DPL=dropsPerLevel(level); const NRE=newRowEvery(level); drops++; pressureDrops++;
+    level=Math.min(Math.floor(drops/DPL)+1,12);
     score+=cl*10*level;
     cur=nxt; nxt=rnd(maxType(level));
-    if(pressureDrops>=NEW_ROW_EVERY){ pressureDrops=0; pushRow(); }
+    if(pressureDrops>=NRE){ pressureDrops=0; pushRow(); }
     over=board[0].some(v=>v>=0);
     if(cl>0) showCombo(cl>=12?"🔥 GODLIKE!":cl>=9?"💥 INSANE!":cl>=6?"✨ MEGA!":cl>=3?"👍 NICE!":"");
     paintBoard(); paintHUD(); paintCurrent();
