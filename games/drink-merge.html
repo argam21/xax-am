@@ -8,65 +8,68 @@
     *{box-sizing:border-box;margin:0;padding:0}
     body{background:linear-gradient(170deg,#0a0f1e,#0f2027,#1a3a4a);
       display:flex;flex-direction:column;align-items:center;
-      padding-top:14px;font-family:system-ui,sans-serif;
-      user-select:none;-webkit-user-select:none;min-height:100vh;color:#e8eaf0}
-    #hud{display:flex;gap:8px;margin-bottom:10px}
-    .hud-box{flex:1;background:#0c1526;border-radius:10px;padding:7px 4px;
-      text-align:center;border:1px solid #1e3a5f;min-width:70px}
-    .hud-label{color:#3a5570;font-size:9px;letter-spacing:1px}
-    .hud-val{font-size:19px;font-weight:800;line-height:1.2}
-    #shooter-row{display:flex;margin-bottom:4px}
+      padding:10px 0 16px;font-family:system-ui,sans-serif;
+      user-select:none;-webkit-user-select:none;min-height:100vh;
+      color:#e8eaf0;overflow-x:hidden}
+    #hud{display:flex;gap:6px;margin-bottom:8px;width:100%;padding:0 12px}
+    .hud-box{flex:1;background:#0c1526;border-radius:10px;padding:6px 4px;
+      text-align:center;border:1px solid #1e3a5f}
+    .hud-label{color:#3a5570;font-size:9px;letter-spacing:1px;text-transform:uppercase}
+    .hud-val{font-size:18px;font-weight:800;line-height:1.2}
+    #shooter-row{display:flex;margin-bottom:3px}
     .shooter-cell{display:flex;align-items:center;justify-content:center;
-      cursor:pointer;opacity:0.3;transition:opacity 0.1s;font-size:26px}
-    .shooter-cell.active{opacity:1}
-    #board-wrap{position:relative}
-    #board{display:grid;background:linear-gradient(180deg,#060d1a,#0d1b2a);
+      cursor:pointer;transition:opacity 0.1s, filter 0.1s}
+    #board-wrap{position:relative;flex-shrink:0}
+    #board{display:grid;
+      background:linear-gradient(180deg,#060d1a,#0d1b2a);
       border:1.5px solid #1a3050;border-radius:12px;overflow:hidden;
       box-shadow:0 4px 40px rgba(0,0,0,.6)}
     .cell{display:flex;align-items:center;justify-content:center;
       border-right:1px solid rgba(255,255,255,0.04);
-      border-bottom:1px solid rgba(255,255,255,0.04);
-      transition:background 0.1s;font-size:24px}
+      border-bottom:1px solid rgba(255,255,255,0.04)}
     .cell.danger-top{border-top:1px solid rgba(239,68,68,0.25)}
-    .cell.hot{background:rgba(255,160,32,0.08)}
+    .cell.hot{background:rgba(255,160,32,0.09)}
     .tap-zone{position:absolute;top:0;cursor:pointer;z-index:10}
-    #progress-wrap{margin-top:10px}
-    #progress-bar-bg{height:3px;background:#0d1b2a;border-radius:99px;overflow:hidden}
+    #progress-wrap{margin-top:8px;padding:0 12px;width:100%}
+    #progress-bar-bg{height:3px;background:#0d1b2a;border-radius:99px;overflow:hidden;margin-top:3px}
     #progress-bar{height:100%;background:linear-gradient(90deg,#34d399,#059669);
       border-radius:99px;transition:width 0.3s;width:0%}
-    #progress-label{display:flex;justify-content:space-between;
-      color:#2a4060;font-size:10px;margin-bottom:3px}
-    #combo{position:fixed;top:25%;left:50%;transform:translate(-50%,-50%);
+    #progress-label{display:flex;justify-content:space-between;color:#2a4060;font-size:10px}
+    #hint{color:#1e3a50;font-size:10px;text-align:center;margin-top:5px}
+    #combo{position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);
       font-size:32px;font-weight:900;color:#fcd34d;
       text-shadow:0 0 24px #f59e0b;z-index:999;
-      pointer-events:none;display:none;animation:pop .35s cubic-bezier(.36,2,.6,1) both}
+      pointer-events:none;display:none}
     #gameover{position:absolute;inset:0;background:rgba(0,0,0,.92);
       display:none;flex-direction:column;align-items:center;justify-content:center;
       gap:8px;z-index:50;border-radius:12px}
-    #gameover-score{color:#fcd34d;font-size:28px;font-weight:800}
-    #gameover-level{color:#64748b;font-size:12px}
     #replay-btn{margin-top:8px;background:linear-gradient(135deg,#fcd34d,#f59e0b);
       color:#0a0f1e;border:none;border-radius:10px;padding:11px 36px;
       font-size:15px;font-weight:800;cursor:pointer}
+    #anim{position:absolute;pointer-events:none;z-index:20;
+      display:none;align-items:center;justify-content:center}
     @keyframes pop{
       0%{transform:translate(-50%,-50%) scale(.3);opacity:0}
       65%{transform:translate(-50%,-50%) scale(1.2);opacity:1}
       100%{transform:translate(-50%,-50%) scale(1);opacity:1}
     }
-    @keyframes fall{
-      0%{transform:translateY(0);opacity:1}
-      100%{transform:translateY(var(--bh));opacity:0}
-    }
-    #anim{position:absolute;pointer-events:none;z-index:20;
-      display:flex;align-items:center;justify-content:center;display:none}
   </style>
 </head>
 <body>
 
 <div id="hud">
-  <div class="hud-box"><div class="hud-label">SCORE</div><div class="hud-val" id="score" style="color:#fcd34d">0</div></div>
-  <div class="hud-box"><div class="hud-label">LEVEL</div><div class="hud-val" id="level" style="color:#34d399">1</div></div>
-  <div class="hud-box"><div class="hud-label">NEXT</div><div class="hud-val" id="next-drink">🍊</div></div>
+  <div class="hud-box">
+    <div class="hud-label">Score</div>
+    <div class="hud-val" id="score" style="color:#fcd34d">0</div>
+  </div>
+  <div class="hud-box">
+    <div class="hud-label">Level</div>
+    <div class="hud-val" id="level" style="color:#34d399">1</div>
+  </div>
+  <div class="hud-box">
+    <div class="hud-label">Next</div>
+    <div class="hud-val" id="next-drink">🍊</div>
+  </div>
 </div>
 
 <div id="combo"></div>
@@ -78,20 +81,23 @@
   <div id="gameover">
     <div style="font-size:44px">😵</div>
     <div style="color:#f87171;font-size:22px;font-weight:900">GAME OVER</div>
-    <div id="gameover-level"></div>
-    <div id="gameover-score"></div>
+    <div id="gameover-level" style="color:#64748b;font-size:12px"></div>
+    <div id="gameover-score" style="color:#fcd34d;font-size:28px;font-weight:800"></div>
     <button id="replay-btn">Play Again</button>
   </div>
 </div>
 
 <div id="progress-wrap">
-  <div id="progress-label"><span id="plevel">Level 1</span><span id="pdrops">0/15</span></div>
+  <div id="progress-label">
+    <span id="plevel">Level 1</span>
+    <span id="pdrops">0/15 to next level</span>
+  </div>
   <div id="progress-bar-bg"><div id="progress-bar"></div></div>
-  <div style="color:#1e3a50;font-size:10px;text-align:center;margin-top:5px">Tap column to drop · Match 3 to clear</div>
+  <div id="hint">Tap any column to drop · Match 3 to clear</div>
 </div>
 
 <script>
-const TYPES = [
+const TYPES=[
   {emoji:"🧃",color:"#f59e0b"},
   {emoji:"🍊",color:"#f97316"},
   {emoji:"🍹",color:"#10b981"},
@@ -100,21 +106,23 @@ const TYPES = [
   {emoji:"🥂",color:"#fcd34d"},
   {emoji:"🍷",color:"#dc2626"},
 ];
-const COLS=6, ROWS=10;
-let board, current, next, score, drops, level, over, busy;
-let cellSize, BW, BH;
+const COLS=6,ROWS=10;
+let board,current,next,score,drops,level,over,busy;
+let cellSize,BW,BH;
 
 function calcSize(){
-  cellSize = Math.min(Math.floor((window.innerWidth-24)/COLS), 54);
-  BW = cellSize*COLS;
-  BH = cellSize*ROWS;
+  // fit everything on screen with no scroll
+  const availH=window.innerHeight - 10 - 16 - 46 - 38 - 52 - 10; // hud+shooter+progress
+  const byW=Math.floor((window.innerWidth-24)/COLS);
+  const byH=Math.floor(availH/ROWS);
+  cellSize=Math.min(byW,byH,54);
+  BW=cellSize*COLS;
+  BH=cellSize*ROWS;
 }
 
 function randType(max){return Math.floor(Math.random()*(Math.min(max,6)+1));}
-
 function emptyBoard(){return Array.from({length:ROWS},()=>Array(COLS).fill(null));}
-
-function cloneBoard(b){return b.map(r=>r.map(c=>c!==null?{...c}:null));}
+function cloneBoard(b){return b.map(r=>r.map(c=>c!==null?c:null));}
 
 function applyGravity(b){
   for(let c=0;c<COLS;c++){
@@ -123,22 +131,21 @@ function applyGravity(b){
     for(let r=0;r<ROWS;r++) b[r][c]=null;
     stack.forEach((item,i)=>{b[ROWS-stack.length+i][c]=item;});
   }
-  return b;
 }
 
 function findMatches(b){
   const hit=new Set();
   for(let r=0;r<ROWS;r++)
     for(let c=0;c<=COLS-3;c++){
-      const a=b[r][c],bb=b[r][c+1],cc=b[r][c+2];
-      if(a!==null&&bb!==null&&cc!==null&&a===bb&&bb===cc){
+      const a=b[r][c];
+      if(a!==null&&a===b[r][c+1]&&a===b[r][c+2]){
         hit.add(`${r},${c}`);hit.add(`${r},${c+1}`);hit.add(`${r},${c+2}`);
       }
     }
   for(let c=0;c<COLS;c++)
     for(let r=0;r<=ROWS-3;r++){
-      const a=b[r][c],bb=b[r+1][c],cc=b[r+2][c];
-      if(a!==null&&bb!==null&&cc!==null&&a===bb&&bb===cc){
+      const a=b[r][c];
+      if(a!==null&&a===b[r+1][c]&&a===b[r+2][c]){
         hit.add(`${r},${c}`);hit.add(`${r+1},${c}`);hit.add(`${r+2},${c}`);
       }
     }
@@ -170,11 +177,12 @@ function initGame(){
   board=makeInitialBoard();
   current=randType(2);
   next=randType(2);
-  score=0; drops=0; level=1; over=false; busy=false;
+  score=0;drops=0;level=1;over=false;busy=false;
 }
 
 function buildDOM(){
   calcSize();
+
   // shooter row
   const sr=document.getElementById('shooter-row');
   sr.innerHTML='';
@@ -182,26 +190,24 @@ function buildDOM(){
   for(let c=0;c<COLS;c++){
     const d=document.createElement('div');
     d.className='shooter-cell';
-    d.style.width=cellSize+'px';
-    d.style.height=cellSize+'px';
+    d.style.cssText=`width:${cellSize}px;height:${cellSize}px;font-size:${cellSize*0.52}px`;
     d.id='sc'+c;
     sr.appendChild(d);
   }
-  // board
+
+  // board cells
   const boardEl=document.getElementById('board');
-  boardEl.style.width=BW+'px';
-  boardEl.style.height=BH+'px';
-  boardEl.style.gridTemplateColumns=`repeat(${COLS},${cellSize}px)`;
-  boardEl.style.gridTemplateRows=`repeat(${ROWS},${cellSize}px)`;
+  boardEl.style.cssText=`width:${BW}px;height:${BH}px;grid-template-columns:repeat(${COLS},${cellSize}px);grid-template-rows:repeat(${ROWS},${cellSize}px)`;
   boardEl.innerHTML='';
   for(let r=0;r<ROWS;r++)
     for(let c=0;c<COLS;c++){
       const d=document.createElement('div');
       d.className='cell'+(r===1?' danger-top':'');
       d.style.fontSize=(cellSize*0.5)+'px';
-      d.id=`c${r}_${c}`;
+      d.id=`cl${r}_${c}`;
       boardEl.appendChild(d);
     }
+
   // tap zones
   const wrap=document.getElementById('board-wrap');
   wrap.style.width=BW+'px';
@@ -209,18 +215,15 @@ function buildDOM(){
   for(let c=0;c<COLS;c++){
     const d=document.createElement('div');
     d.className='tap-zone';
-    d.style.left=(c*cellSize)+'px';
-    d.style.width=cellSize+'px';
-    d.style.height=BH+'px';
+    d.style.cssText=`left:${c*cellSize}px;width:${cellSize}px;height:${BH}px`;
     d.addEventListener('pointerdown',e=>{e.preventDefault();drop(c);});
     wrap.appendChild(d);
   }
-  // anim element
+
+  // anim
   const anim=document.getElementById('anim');
-  anim.style.width=cellSize+'px';
-  anim.style.height=cellSize+'px';
-  anim.style.fontSize=(cellSize*0.5)+'px';
-  document.documentElement.style.setProperty('--bh', BH+'px');
+  anim.style.cssText=`width:${cellSize}px;height:${cellSize}px;font-size:${cellSize*0.5}px;left:0;top:0`;
+
   // progress
   document.getElementById('progress-wrap').style.width=BW+'px';
   document.getElementById('hud').style.width=BW+'px';
@@ -229,9 +232,10 @@ function buildDOM(){
 function renderBoard(activeCol){
   for(let r=0;r<ROWS;r++)
     for(let c=0;c<COLS;c++){
-      const el=document.getElementById(`c${r}_${c}`);
-      el.textContent=board[r][c]!==null?TYPES[board[r][c]].emoji:'';
-      el.classList.toggle('hot', c===activeCol);
+      const el=document.getElementById(`cl${r}_${c}`);
+      const val=board[r][c];
+      el.textContent=val!==null?TYPES[val].emoji:'';
+      el.classList.toggle('hot',c===activeCol);
     }
 }
 
@@ -239,17 +243,20 @@ function renderHUD(){
   document.getElementById('score').textContent=score;
   document.getElementById('level').textContent=level;
   document.getElementById('next-drink').textContent=TYPES[next].emoji;
+  const rem=15-(drops%15);
   document.getElementById('plevel').textContent='Level '+level;
-  document.getElementById('pdrops').textContent=(drops%15)+'/15';
+  document.getElementById('pdrops').textContent=(drops%15)+'/15 to next level';
   document.getElementById('progress-bar').style.width=((drops%15)/15*100)+'%';
 }
 
 function renderShooter(activeCol){
+  const t=TYPES[current];
   for(let c=0;c<COLS;c++){
     const el=document.getElementById('sc'+c);
-    el.textContent=TYPES[current].emoji;
-    el.classList.toggle('active', c===activeCol);
-    el.style.fontSize=(cellSize*0.52)+'px';
+    el.textContent=t.emoji;
+    const isActive=c===activeCol;
+    el.style.opacity=isActive?'1':'0.25';
+    el.style.filter=isActive?`drop-shadow(0 0 6px ${t.color})`:'none';
   }
 }
 
@@ -269,59 +276,64 @@ function drop(col){
   busy=true;
 
   const droppedType=current;
-
-  // show anim
   renderShooter(col);
   renderBoard(col);
+
+  // animate
   const anim=document.getElementById('anim');
   anim.textContent=TYPES[droppedType].emoji;
   anim.style.left=(col*cellSize)+'px';
-  anim.style.top='0';
+  anim.style.top='0px';
   anim.style.display='flex';
-  anim.style.animation='none';
-  void anim.offsetWidth;
-  anim.style.animation='fall .2s ease-in forwards';
 
-  setTimeout(()=>{
-    anim.style.display='none';
-
-    // find lowest empty row
-    let row=-1;
-    for(let r=ROWS-1;r>=0;r--){
-      if(board[r][col]===null){row=r;break;}
+  // manual animation via requestAnimationFrame
+  const duration=200;
+  const start=performance.now();
+  function animate(now){
+    const t=Math.min((now-start)/duration,1);
+    const ease=t*t; // ease-in
+    anim.style.top=(ease*BH)+'px';
+    anim.style.opacity=String(1-t*0.8);
+    if(t<1){requestAnimationFrame(animate);}
+    else{
+      anim.style.display='none';
+      finalizeDrop(col,droppedType);
     }
-    if(row===-1){busy=false;return;}
+  }
+  requestAnimationFrame(animate);
+}
 
-    board[row][col]=droppedType;
-    const cleared=resolveBoard(board);
+function finalizeDrop(col,droppedType){
+  let row=-1;
+  for(let r=ROWS-1;r>=0;r--){
+    if(board[r][col]===null){row=r;break;}
+  }
+  if(row===-1){busy=false;return;}
 
-    drops++;
-    level=Math.min(Math.floor(drops/15)+1,7);
-    score+=cleared*10*level;
+  board[row][col]=droppedType;
+  const cleared=resolveBoard(board);
 
-    // advance queue
-    current=next;
-    next=randType(Math.min(level+1,6));
+  drops++;
+  level=Math.min(Math.floor(drops/15)+1,7);
+  score+=cleared*10*level;
+  current=next;
+  next=randType(Math.min(level+1,6));
+  over=board[0].some(c=>c!==null);
 
-    over=board[0].some(c=>c!==null);
+  if(cleared>0){
+    showCombo(cleared>=9?"🔥 INSANE!":cleared>=6?"💥 MEGA!":"✨ NICE!");
+  }
 
-    if(cleared>0){
-      const msg=cleared>=9?"🔥 INSANE!":cleared>=6?"💥 MEGA!":"✨ NICE!";
-      showCombo(msg);
-    }
+  renderBoard(null);
+  renderHUD();
+  renderShooter(null);
 
-    renderBoard(null);
-    renderHUD();
-    renderShooter(null);
-
-    if(over){
-      document.getElementById('gameover-level').textContent='Level '+level;
-      document.getElementById('gameover-score').textContent=score+' pts';
-      document.getElementById('gameover').style.display='flex';
-    }
-
-    busy=false;
-  },210);
+  if(over){
+    document.getElementById('gameover-level').textContent='Level '+level;
+    document.getElementById('gameover-score').textContent=score+' pts';
+    document.getElementById('gameover').style.display='flex';
+  }
+  busy=false;
 }
 
 function startGame(){
@@ -334,13 +346,7 @@ function startGame(){
 }
 
 document.getElementById('replay-btn').addEventListener('click',startGame);
-window.addEventListener('resize',()=>{
-  buildDOM();
-  renderBoard(null);
-  renderHUD();
-  renderShooter(null);
-});
-
+window.addEventListener('resize',()=>{buildDOM();renderBoard(null);renderHUD();renderShooter(null);});
 startGame();
 </script>
 </body>
